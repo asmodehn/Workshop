@@ -1,0 +1,7 @@
+Cunit from SF -> doesnt seem very active right now... maybe this is not really usefull for C only...
+
+use pthread-win32
+
+DO NOT Use log4c ( seems not portable to windows right now)
+
+HAVE A LOOK at GNet...

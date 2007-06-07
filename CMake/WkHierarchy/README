@@ -1,0 +1,14 @@
+This is an example hierarchy to be used along with CMake addons.
+
+In this Hierarchy A depends on B, however B can be used without A.
+
+Here we want to include B inside A, and not using B as a package to be found
+already installed on the mahcine and use it.
+
+B is what is called a "convenience library". Libtool used to build it as a
+static library. However CMake doesnt support this type of use for static
+libraries yet. So in the mean time we will use directly the source of the
+convenience library.
+
+This process has been coded in WkBuild.cmake
+

@@ -1,0 +1,134 @@
+#!/bin/sh
+# the next line restarts using wish \
+exec wish "$0" "$@"
+
+package require Tk
+
+set ::cursor(x) 1
+
+set ::rsspeak 0
+set ::rsspeaktext ""
+
+set ::vszpeak 0
+set ::vszpeaktext ""
+
+set ::follow_graph 1
+
+proc draw.value {win value height id peak_ptr peaktext_ptr} {
+ global cursor scale
+
+ upvar $peak_ptr peak
+ upvar $peaktext_ptr peaktext
+
+ set lasty [lindex [$win coords $id] end]
+ # 800 is a good height for the graph offset
+ set y [expr {800 - ($value / double($scale))}]
+
+ $win coords $id [concat [$win coords $id] [list $cursor(x) $y]]
+
+ #
+ # Test if this value is greater than the previous peak.
+ #
+
+ if {$value > $peak} {
+  set peak $value
+  #
+  # Change the previous peak's color
+  #
+  if {"" ne $peaktext} {
+   $win itemconfigure $peaktext -fill white -font {fixed 10}
+  }
+  set peaktext [$win create text $cursor(x) $y -text $value \
+    -fill orange -font {fixed 14}]
+ } else {
+  $win create text $cursor(x) $y -text $value -fill white -font {fixed 10}
+ }
+}
+
+proc update.stats {win pid} {
+ global cursor
+
+ if {[catch {exec ps -p $pid -o vsize= -o rss=} res]} {
+  return -code error $res
+ }
+
+  foreach {vsz rss} [split [string trim $res]] break
+
+ global rsspeak rsspeaktext
+
+ set height [winfo height $win]
+ draw.value $win $rss $height $::rssid rsspeak rsspeaktext
+ incr cursor(x) 50
+
+ global vszpeak vszpeaktext
+
+ draw.value $win $vsz $height $::vszid vszpeak vszpeaktext
+ incr cursor(x) 50
+
+ $win config -scrollregion [$win bbox all]
+
+ if {$::follow_graph} {
+   $win xview moveto 1.0
+  }
+
+  after 1000 [list update.stats $win $pid]
+ }
+
+ proc view.tag {win tag} {
+  foreach {x1 y1 x2 y2} [$win bbox all] break
+
+  foreach {tx1 ty1 _ _} [$win bbox $tag] break
+
+  $win xview moveto [expr {$tx1 / double($x2)}]
+  $win yview moveto [expr {$ty1 / double($y2)}]
+ }
+
+ proc main {argc argv} {
+  if {2 != $argc} {
+   puts stderr "syntax is: [info script] pid scale"
+   return 1
+  }
+
+  frame .controls
+  pack [checkbutton .controls.follow -text "Follow Graph" -variable ::follow_graph] -side left
+
+  pack [button .controls.rssPeak -text "Jump to RSS Peak" -command {
+   set ::follow_graph 0
+   view.tag .graph.c $::rsspeaktext
+  }] -side left
+
+  pack [button .controls.vsz -text "Jump to VSZ Peak" -command {
+   set ::follow_graph 0
+   view.tag .graph.c $::vszpeaktext
+  }] -side left
+
+  pack .controls -fill x
+
+  frame .graph
+  canvas .graph.c \
+    -xscrollcommand {.graph.xscroll set} \
+    -yscrollcommand {.graph.yscroll set} \
+    -bg black
+  scrollbar .graph.xscroll -command {.graph.c xview} -orient horizontal
+  scrollbar .graph.yscroll -command {.graph.c yview}
+
+  pack .graph -fill both -expand 1
+
+  grid .graph.c -row 0 -column 0 -sticky nesw
+  grid .graph.xscroll -row 1 -column 0 -sticky we
+  grid .graph.yscroll -row 0 -column 1 -sticky ns
+
+  grid columnconfigure .graph 0 -weight 100
+  grid rowconfigure .graph 0 -weight 100
+
+  set ::vszid [.graph.c create line 0 0 1 1 -fill red]
+  set ::rssid [.graph.c create line 0 0 1 1 -fill green]
+
+  set ::scale [lindex $argv 1]
+
+  update idletasks
+  after idle [list update.stats .graph.c [lindex $argv 0]]
+ }
+
+ main $::argc $::argv
+ 

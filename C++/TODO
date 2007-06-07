@@ -1,0 +1,4 @@
+Use CppUnit
+use log4cpp
+use stlport
+use pthreads-win32

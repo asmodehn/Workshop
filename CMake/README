@@ -1,0 +1,4 @@
+This section contains utilities for CMAKE.
+
+Simply include the cmake file you want to use, and call the macro where it suits
+you.
