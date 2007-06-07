@@ -1,2 +1,0 @@
-/usr/bin/ar cr lib/libDbgMem.a  "CMakeFiles/DbgMem.dir/src/dbgmem.o" 
-/usr/bin/ranlib lib/libDbgMem.a 

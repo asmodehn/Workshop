@@ -1,2 +1,0 @@
-/usr/bin/ar cr lib/libLogger.a  "CMakeFiles/Logger.dir/src/Logger.o" 
-/usr/bin/ranlib lib/libLogger.a 
