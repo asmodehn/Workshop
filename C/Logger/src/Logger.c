@@ -22,10 +22,10 @@ void logger_clear_prefix(void)
 
 short logger_filter_lvl = 0;
 
-void logger_write(short level, const char * fmt, ... )
+int logger_write(short level, const char * fmt, ... )
 {
-
-	va_list argptr;             
+	int nbchar = 0;
+	va_list argptr;
 	va_start( argptr, fmt );
 
 	if ( level >= logger_filter_lvl )
@@ -33,13 +33,14 @@ void logger_write(short level, const char * fmt, ... )
 		/* TODO: if multi-threaded, lock this section.  Don't want multiple threads logging at the same time */
 		if ( logger_target != NULL )
 		{
-			vfprintf(logger_target,fmt, argptr);
+			nbchar = vfprintf(logger_target,fmt, argptr);
 		}
 #ifndef DISABLE_STDOUT_TARGET
-		vfprintf(stdout,fmt, argptr);
+		nbchar = vfprintf(stdout,fmt, argptr);
 #endif	
 	}
 	va_end(argptr);
+	return nbchar;
 }
 
 short int logger_filter_lvl_out(short min_logged_lvl)

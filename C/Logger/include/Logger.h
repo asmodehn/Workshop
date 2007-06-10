@@ -37,7 +37,8 @@ void logger_clear_prefix(void);
 #define logger_warning( msg ) logger_write( LOGGER_WARNING_LVL, (msg) )
 #define logger_error( msg ) logger_write( LOGGER_ERROR_LVL, (msg) )
 
-void logger_write(short level, const char * fmt, ... );
+/* returns the number of character outputted */
+int logger_write(short level, const char * fmt, ... );
 
 /* to disable console output if not in debug mode */
 #ifdef NDEBUG
