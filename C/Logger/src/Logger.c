@@ -1,5 +1,7 @@
 #include "Logger.h"
 
+#include <stdlib.h>
+
 /* This is the implementation of an ISO C90 portable Logger
  * this logger always log to the console, and optionally to files
  * log levels are supported
@@ -22,6 +24,24 @@ void logger_clear_prefix(void)
 
 short logger_filter_lvl = 0;
 
+int logger_write_target_pv(const char * fmt, ...)
+{
+	int nbchar = 0;
+	va_list argptr;
+	va_start( argptr, fmt );
+
+	/* TODO: if multi-threaded, lock this section.  Don't want multiple threads logging at the same time */
+	if ( logger_target != NULL )
+	{
+		nbchar = vfprintf(logger_target,fmt, argptr);
+	}
+#ifndef DISABLE_STDOUT_TARGET
+	nbchar = vfprintf(stdout,fmt, argptr);
+#endif
+	va_end(argptr);
+	return nbchar;
+}
+
 int logger_write(short level, const char * fmt, ... )
 {
 	int nbchar = 0;
@@ -33,15 +53,25 @@ int logger_write(short level, const char * fmt, ... )
 	{
 		/* adding prefix */
 		strncat(prefmt, fmt, strlen(fmt));
-		
-		/* TODO: if multi-threaded, lock this section.  Don't want multiple threads logging at the same time */
-		if ( logger_target != NULL )
-		{
-			nbchar = vfprintf(logger_target,prefmt, argptr);
-		}
-#ifndef DISABLE_STDOUT_TARGET
-		nbchar = vfprintf(stdout,prefmt, argptr);
-#endif	
+		nbchar = logger_write_target_pv(prefmt,argptr);
+	}
+	va_end(argptr);
+	free(prefmt);
+	return nbchar;
+}
+
+int logger_write_fileline(short level, const char * file, int line, const char * fmt, ...)
+{
+	int nbchar = 0;
+	char * prefmt = strdup("%s:%d:");
+	va_list argptr;
+	va_start( argptr, fmt );
+
+	if ( level >= logger_filter_lvl )
+	{
+		/* adding prefix */
+		strncat(prefmt, fmt, strlen(fmt));
+		nbchar = logger_write_target_pv(prefmt, file, line, argptr );
 	}
 	va_end(argptr);
 	free(prefmt);

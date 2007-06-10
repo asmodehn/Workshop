@@ -5,6 +5,12 @@
 #include <stdio.h>
 #include <string.h>
 
+/* Set up for C function definitions, even when using C++ */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+	
 /* This defines a ISO C90 portable Logger
  * this logger always log to the console, and optionally to files
  * log levels are supported
@@ -31,19 +37,33 @@ void logger_clear_prefix(void);
 #define LOGGER_WARNING_LVL 6
 #define LOGGER_ERROR_LVL 7
 
-#define logger_dbglog( msg ) logger_write( LOGGER_DEBUGLOG_LVL, (msg) )
-#define logger_log( msg ) logger_write( LOGGER_LOG_LVL, (msg) )
-#define logger_warning( msg ) logger_write( LOGGER_WARNING_LVL, (msg) )
-#define logger_error( msg ) logger_write( LOGGER_ERROR_LVL, (msg) )
 
-/* returns the number of character outputted (including prefix) */
-int logger_write(short level, const char * fmt, ... );
-		
-/* to disable console output if not in debug mode */
 #ifdef NDEBUG
+/* to disable console output if not in debug mode */
 #define DISABLE_STDOUT_TARGET
 #endif
 
+#ifdef _DEBUG
+/* to enable source filename and line output in debug mode */
+#define LOGGER_WITH_DEBUG_INFO
+#endif
+
+
+#ifdef LOGGER_WITH_DEBUG_INFO
+	#define logger_dbglog( msg ) logger_write_fileline( LOGGER_DEBUGLOG_LVL, __FILE__, __LINE__ , (msg) )
+	#define logger_log( msg ) logger_write_fileline( LOGGER_LOG_LVL, __FILE__, __LINE__ , (msg) )
+	#define logger_warning( msg ) logger_write_fileline( LOGGER_WARNING_LVL, __FILE__, __LINE__ , (msg) )
+	#define logger_error( msg ) logger_write_fileline( LOGGER_ERROR_LVL, __FILE__, __LINE__ , (msg) )
+#else
+	#define logger_dbglog( msg ) logger_write( LOGGER_DEBUGLOG_LVL, (msg) )
+	#define logger_log( msg ) logger_write( LOGGER_LOG_LVL, (msg) )
+	#define logger_warning( msg ) logger_write( LOGGER_WARNING_LVL, (msg) )
+	#define logger_error( msg ) logger_write( LOGGER_ERROR_LVL, (msg) )
+#endif
+/* returns the number of character outputted (including prefix) */
+int logger_write(short level, const char * fmt, ... );
+int logger_write_fileline(short level, const char * file, int line, const char * fmt, ...);
+		
 /* defining minimal lvl to actually log */
 extern short logger_filter_lvl;
 
@@ -55,5 +75,9 @@ extern FILE* logger_target;
 short int logger_set_target(FILE* target);
 short int logger_rem_target();
 
+/* Ends C function definitions when using C++ */
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* LOGGER_H */
