@@ -22,7 +22,6 @@ extern char logger_prefix[LOGGER_PREFIX_MAXLEN];
 void logger_append_prefix(const char * prefix );
 void logger_clear_prefix(void);
 
-
 /* logger lvl from 0 to 7 */
 #define LOGGER_MAX_LVL 8
 
@@ -37,9 +36,9 @@ void logger_clear_prefix(void);
 #define logger_warning( msg ) logger_write( LOGGER_WARNING_LVL, (msg) )
 #define logger_error( msg ) logger_write( LOGGER_ERROR_LVL, (msg) )
 
-/* returns the number of character outputted */
+/* returns the number of character outputted (including prefix) */
 int logger_write(short level, const char * fmt, ... );
-
+		
 /* to disable console output if not in debug mode */
 #ifdef NDEBUG
 #define DISABLE_STDOUT_TARGET

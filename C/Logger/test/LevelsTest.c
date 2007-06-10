@@ -3,7 +3,8 @@
 int main ( int argc, char* argv[] )
 {
 	/* Log in a file to work even in Release builds */
-	FILE * logfile = fopen( "testfile.log","w");
+	/*FILE * logfile = fopen( "testfile.log","w"); */
+	FILE * logfile = tmpfile();
 	if ( logfile == NULL )
 		return -1; /* file not opened */
 

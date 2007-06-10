@@ -25,21 +25,26 @@ short logger_filter_lvl = 0;
 int logger_write(short level, const char * fmt, ... )
 {
 	int nbchar = 0;
+	char * prefmt = strdup(logger_prefix);
 	va_list argptr;
 	va_start( argptr, fmt );
 
 	if ( level >= logger_filter_lvl )
 	{
+		/* adding prefix */
+		strncat(prefmt, fmt, strlen(fmt));
+		
 		/* TODO: if multi-threaded, lock this section.  Don't want multiple threads logging at the same time */
 		if ( logger_target != NULL )
 		{
-			nbchar = vfprintf(logger_target,fmt, argptr);
+			nbchar = vfprintf(logger_target,prefmt, argptr);
 		}
 #ifndef DISABLE_STDOUT_TARGET
-		nbchar = vfprintf(stdout,fmt, argptr);
+		nbchar = vfprintf(stdout,prefmt, argptr);
 #endif	
 	}
 	va_end(argptr);
+	free(prefmt);
 	return nbchar;
 }
 
