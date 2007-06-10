@@ -38,7 +38,8 @@ ENDMACRO(WkTest)
 
 MACRO(WkTestAllOnce project_name )
 
-	AUX_SOURCE_DIRECTORY(test testsources)
+	FILE(GLOB_RECURSE testsources RELATIVE ${PROJECT_SOURCE_DIR} test/*.c test/*.cpp test/*.cc)
+	#MESSAGE ( STATUS "Test Sources : ${testsources} " )
 	FOREACH ( testsrc ${testsources} )
 		WkTest( ${project_name} ${testsrc} )
 	ENDFOREACH ( testsrc ${testsources} )
