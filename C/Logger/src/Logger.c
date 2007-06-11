@@ -23,8 +23,9 @@ void logger_clear_prefix(void)
 }
 
 short logger_filter_lvl = 0;
+short logger_filter_lvl_show = 0;
 
-int logger_write_target_pv(const char * fmt, ...)
+int logger_write_target_pv(short lvl, const char * fmt, ...)
 {
 	int nbchar = 0;
 	va_list argptr;
@@ -35,8 +36,11 @@ int logger_write_target_pv(const char * fmt, ...)
 	{
 		nbchar = vfprintf(logger_target,fmt, argptr);
 	}
-#ifndef DISABLE_STDOUT_TARGET
-	nbchar = vfprintf(stdout,fmt, argptr);
+#ifndef LOGGER_DISABLE_STDOUT_TARGET
+	if ( lvl >= logger_filter_lvl_show )
+	{
+		nbchar = vfprintf(stdout,fmt, argptr);
+	}
 #endif
 	va_end(argptr);
 	return nbchar;
@@ -53,7 +57,7 @@ int logger_write(short level, const char * fmt, ... )
 	{
 		/* adding prefix */
 		strncat(prefmt, fmt, strlen(fmt));
-		nbchar = logger_write_target_pv(prefmt,argptr);
+		nbchar = logger_write_target_pv(level, prefmt,argptr);
 	}
 	va_end(argptr);
 	free(prefmt);
@@ -71,7 +75,7 @@ int logger_write_fileline(short level, const char * file, int line, const char *
 	{
 		/* adding prefix */
 		strncat(prefmt, fmt, strlen(fmt));
-		nbchar = logger_write_target_pv(prefmt, file, line, argptr );
+		nbchar = logger_write_target_pv(level, prefmt, file, line, argptr );
 	}
 	va_end(argptr);
 	free(prefmt);
@@ -80,8 +84,28 @@ int logger_write_fileline(short level, const char * file, int line, const char *
 
 short int logger_filter_lvl_out(short min_logged_lvl)
 {
-	logger_filter_lvl = min_logged_lvl;
+	if ( min_logged_lvl <= LOGGER_MAX_LVL) /* min_logged_lvl is only valid if ERRORS can still be outputted */
+	{
+		logger_filter_lvl = min_logged_lvl;
+		if ( logger_filter_lvl_show < logger_filter_lvl ) /* maintain console log less verbose than file log */
+		{
+			logger_filter_lvl_show = logger_filter_lvl;
+		}
+	}
 	return logger_filter_lvl;
+}
+
+short int logger_filter_lvl_show_out(short min_showed_lvl)
+{
+	if ( min_showed_lvl <= LOGGER_MAX_LVL) /* min_showed_lvl is only valid if ERRORS can still be outputted */
+	{
+		if ( min_showed_lvl > logger_filter_lvl )  /* maintain console log less verbose than file log */
+		{
+			logger_filter_lvl_show = min_showed_lvl;
+		}
+	}
+	return logger_filter_lvl_show;
+	
 }
 
 FILE* logger_target;

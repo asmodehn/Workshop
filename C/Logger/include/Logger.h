@@ -14,7 +14,11 @@ extern "C" {
 /* This defines a ISO C90 portable Logger
  * this logger always log to the console, and optionally to files
  * log levels are supported
- *  one can easily append prefix to the logger
+ * one can easily append prefix to the logger
+ * Usable defines :
+ * LOGGER_WITH_DEBUG_INFO : adds source filename and line number to log output when using macros
+ * LOGGER_DISABLE_STDOUT_TARGET : completely disable std output.
+ * LOGGER_PREFIX_MAXLEN : the maximum length of the prefix.
  */
  
 #ifndef LOGGER_PREFIX_MAXLEN
@@ -28,26 +32,17 @@ extern char logger_prefix[LOGGER_PREFIX_MAXLEN];
 void logger_append_prefix(const char * prefix );
 void logger_clear_prefix(void);
 
-/* logger lvl from 0 to 7 */
-#define LOGGER_MAX_LVL 8
+/* logger lvl from 0 to 7
+ * This is likely to be enough for any purpose
+ * LOGGER_MAX_LVL leveled messages cannot be filtered
+ */
+#define LOGGER_MAX_LVL 7
 
 /* useful defines for simple use */
 #define LOGGER_DEBUGLOG_LVL 0
 #define LOGGER_LOG_LVL 1
 #define LOGGER_WARNING_LVL 6
 #define LOGGER_ERROR_LVL 7
-
-
-#ifdef NDEBUG
-/* to disable console output if not in debug mode */
-#define DISABLE_STDOUT_TARGET
-#endif
-
-#ifdef _DEBUG
-/* to enable source filename and line output in debug mode */
-#define LOGGER_WITH_DEBUG_INFO
-#endif
-
 
 #ifdef LOGGER_WITH_DEBUG_INFO
 	#define logger_dbglog( msg ) logger_write_fileline( LOGGER_DEBUGLOG_LVL, __FILE__, __LINE__ , (msg) )
@@ -60,14 +55,22 @@ void logger_clear_prefix(void);
 	#define logger_warning( msg ) logger_write( LOGGER_WARNING_LVL, (msg) )
 	#define logger_error( msg ) logger_write( LOGGER_ERROR_LVL, (msg) )
 #endif
-/* returns the number of character outputted (including prefix) */
+/* returns the number of character outputted (including prefix)
+ * if no output should occurs ( because of filtering, 0 is returned
+ * if console output is made ( stdout target not disabled and loglevel not filtered out )
+ * then the number of character in other targets ( file ) is forgotten.
+ * Otherwise the number of character outputted  to previous target is returned
+ */
 int logger_write(short level, const char * fmt, ... );
 int logger_write_fileline(short level, const char * file, int line, const char * fmt, ...);
 		
 /* defining minimal lvl to actually log */
 extern short logger_filter_lvl;
+/* defining minimal lvl to log to the console. should be > logger_filter_lvl */
+extern short logger_filter_lvl_show;
 
 short int logger_filter_lvl_out(short min_logged_lvl);
+short int logger_filter_lvl_show_out(short min_showed_lvl);
 
 /* logger target definition */
 extern FILE* logger_target;
