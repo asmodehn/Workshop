@@ -12,6 +12,13 @@ mkdir include
 mkdir src
 mkdir test
 
+cd CMake
+ln -s ../../../CMake/MergeLists.cmake
+ln -s ../../../CMake/WkBuild.cmake
+ln -s ../../../CMake/WkCompilerSetup.cmake
+ln -s ../../../CMake/WkTest.cmake 
+cd ..
+
 touch CMakeLists.txt
 
 # this should be improved to create a sample blank project using Wk*.cmake modules, possibly interactively...
