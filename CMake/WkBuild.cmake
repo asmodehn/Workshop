@@ -63,7 +63,7 @@ macro (WkBuild project_name project_type)
         #
         IF ( ${ARGC} GREATER 2 )
                 FOREACH ( looparg ${ARGN} )
-                        INCLUDE_DIRECTORIES(ext/${looparg}/include)
+                        INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/ext/${looparg}/include)
                 ENDFOREACH ( looparg )
         ENDIF ( ${ARGC} GREATER 2  )
 
