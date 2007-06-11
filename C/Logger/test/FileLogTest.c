@@ -2,8 +2,7 @@
 
 int main ( int argc, char* argv[] )
 {
-	/*FILE * logfile = fopen( "testfile.log","w"); */
-	FILE * logfile = tmpfile();
+	FILE * logfile = fopen( "testfile.log","w");
 	if ( logfile == NULL )
 		return -1; /* file not opened */
 

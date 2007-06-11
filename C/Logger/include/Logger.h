@@ -44,6 +44,15 @@ void logger_clear_prefix(void);
 #define LOGGER_WARNING_LVL 6
 #define LOGGER_ERROR_LVL 7
 
+/* These are booleans flags : value 0 or 1 */
+extern unsigned short logger_prepend_date;
+extern unsigned short logger_prepend_time;
+
+void logger_set_prepend_date(void);
+void logger_set_prepend_time(void);
+void logger_unset_prepend_date(void);
+void logger_unset_prepend_time(void);
+
 #ifdef LOGGER_WITH_DEBUG_INFO
 	#define logger_dbglog( msg ) logger_write_fileline( LOGGER_DEBUGLOG_LVL, __FILE__, __LINE__ , (msg) )
 	#define logger_log( msg ) logger_write_fileline( LOGGER_LOG_LVL, __FILE__, __LINE__ , (msg) )
@@ -65,9 +74,9 @@ int logger_write(short level, const char * fmt, ... );
 int logger_write_fileline(short level, const char * file, int line, const char * fmt, ...);
 		
 /* defining minimal lvl to actually log */
-extern short logger_filter_lvl;
+extern unsigned short logger_filter_lvl;
 /* defining minimal lvl to log to the console. should be > logger_filter_lvl */
-extern short logger_filter_lvl_show;
+extern unsigned short logger_filter_lvl_show;
 
 short int logger_filter_lvl_out(short min_logged_lvl);
 short int logger_filter_lvl_show_out(short min_showed_lvl);

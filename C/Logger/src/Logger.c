@@ -1,6 +1,7 @@
 #include "Logger.h"
 
 #include <stdlib.h>
+#include <time.h>
 
 /* This is the implementation of an ISO C90 portable Logger
  * this logger always log to the console, and optionally to files
@@ -22,29 +23,50 @@ void logger_clear_prefix(void)
 	logger_prefix[0] = '\0';
 }
 
-short logger_filter_lvl = 0;
-short logger_filter_lvl_show = 0;
+unsigned short logger_prepend_date = 0;
+unsigned short logger_prepend_time = 0;
+
+void logger_set_prepend_date(void) { logger_prepend_date = 1; }
+void logger_set_prepend_time(void) { logger_prepend_time = 1; }
+void logger_unset_prepend_date(void) { logger_prepend_date = 0; }
+void logger_unset_prepend_time(void) { logger_prepend_time = 0; }
 
 int logger_write_target_pv(short lvl, const char * fmt, ...)
 {
 	int nbchar = 0;
+	char * dtprefixed = strdup("");
+	char * dtformat = strdup("");
+	time_t tp;
 	va_list argptr;
 	va_start( argptr, fmt );
+	
+	if ( logger_prepend_date ) strncat(dtformat,"%Y/%m/%d ",9);
+	if ( logger_prepend_time ) strncat(dtformat,"%H:%M:%S ",9);
 
+	time(&tp);
+	strftime( dtprefixed, 32, dtformat, localtime(&tp) );
+	strncat( dtprefixed, fmt, strlen(fmt));
+	
 	/* TODO: if multi-threaded, lock this section.  Don't want multiple threads logging at the same time */
 	if ( logger_target != NULL )
 	{
-		nbchar = vfprintf(logger_target,fmt, argptr);
+		nbchar = vfprintf(logger_target,dtprefixed, argptr);
 	}
 #ifndef LOGGER_DISABLE_STDOUT_TARGET
 	if ( lvl >= logger_filter_lvl_show )
 	{
-		nbchar = vfprintf(stdout,fmt, argptr);
+		nbchar = vfprintf(stdout,dtprefixed, argptr);
 	}
 #endif
 	va_end(argptr);
+	free(dtformat);
+	free(dtprefixed);
 	return nbchar;
 }
+
+
+unsigned short logger_filter_lvl = 0;
+unsigned short logger_filter_lvl_show = 0;
 
 int logger_write(short level, const char * fmt, ... )
 {
