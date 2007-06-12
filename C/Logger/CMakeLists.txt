@@ -10,6 +10,4 @@ WkCompilerSetup( Logger )
 
 WkBuild( Logger LIBRARY )
 
-WkTestAllOnce( Logger )
-
-
+WkTestAllOnce( Logger DbgMem )
