@@ -15,5 +15,5 @@ SET(BUILD_SHARED_LIBS ON)
 WkBuild( ProjectA LIBRARY ProjectB )
 
 WkTestBuild( maintest ProjectA)
-WkTestRun( maintest )
+WkTestRun( maintest ProjectA)
 

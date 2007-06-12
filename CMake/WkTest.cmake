@@ -26,8 +26,7 @@ MACRO(WkTestBuild test_name project_name  )
 			IF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test )
 				FILE ( MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/test )
 			ENDIF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test )
-			ADD_CUSTOM_COMMAND( TARGET ${test_name} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy
-			${${test_name}_LOCATION} ${PROJECT_BINARY_DIR}/test/)
+			ADD_CUSTOM_COMMAND( TARGET ${test_name} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy ${${test_name}_LOCATION} ${PROJECT_BINARY_DIR}/test/)
 			ADD_CUSTOM_COMMAND( TARGET ${test_name} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E remove ${${test_name}_LOCATION} )
 		
 			#if test arguments
@@ -54,10 +53,13 @@ MACRO(WkTestBuild test_name project_name  )
 
 ENDMACRO(WkTestBuild)
 
+#
+# Calls the same test executable multiple times, eachtime with 1 argument
+#
+# WkTestRun( test_name [ arguments [...] ] )
+#
 
-#WkTestRun( test_name [ arguments [...] ] )
-
-MACRO(WkTestRun test_name )
+MACRO(WkTestRun test_name project_name)
 
 	IF(${project_name}_ENABLE_TESTS)
 		ENABLE_TESTING()
@@ -65,10 +67,10 @@ MACRO(WkTestRun test_name )
 		#if test arguments
 		IF ( ${ARGC} GREATER 2 )
 			FOREACH ( looparg ${ARGN} )
-				ADD_TEST(${project_name}_${test}_${looparg} ${EXECUTABLE_OUTPUT_PATH}/${project_name}_${test} ${looparg})
+				ADD_TEST(${test_name}_${looparg} ${PROJECT_BINARY_DIR}/test/${test_name} ${looparg})
 			ENDFOREACH ( looparg )
 		ELSE ( ${ARGC} GREATER 2  )
-			ADD_TEST(${project_name}_${test} ${EXECUTABLE_OUTPUT_PATH}/${project_name}_${test})
+			ADD_TEST(${test_name} ${PROJECT_BINARY_DIR}/test/${test_name})
 		ENDIF ( ${ARGC} GREATER 2  )
 	
 	ENDIF(${project_name}_ENABLE_TESTS)
@@ -87,7 +89,7 @@ MACRO(WkTestAllOnce project_name )
 	FOREACH ( testsrc ${testsources} )
 		GET_FILENAME_COMPONENT(testtarget ${testsrc} NAME_WE)
 		WkTestBuild(${testtarget} ${project_name} ${ARGN} )
-		WkTestRun(${testtarget} )
+		WkTestRun(${testtarget} ${project_name})
 	ENDFOREACH ( testsrc ${testsources} )
 	
 ENDMACRO(WkTestAllOnce)
