@@ -134,10 +134,11 @@ endmacro ( WkDisableFlags )
   
 macro ( WkCompilerSetup Project )
 
-# default build type and set of build mode possibilities
-	IF(NOT CMAKE_BUILD_TYPE)
-	  SET(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build, options are: None(${Project}_CXX_FLAGS or ${Project}_C_FLAGS used) Debug Release." FORCE)
-	ENDIF(NOT CMAKE_BUILD_TYPE)
+	# default build type and set of build mode possibilities for each project, even if dependencies exists. ( a debug project can depend on a release one)
+	IF(NOT ${Project}_BUILD_TYPE)
+		SET(${Project}_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None(${Project}_CXX_FLAGS or ${Project}_C_FLAGS used) Debug Release." )
+	ENDIF(NOT ${Project}_BUILD_TYPE)
+	SET(CMAKE_BUILD_TYPE "${${Project}_BUILD_TYPE}" CACHE INTERNAL "Internal CMake Build Type. Do not edit." FORCE)
 	
 	WkDisableFlags( RelWithDebInfo )
 	WkDisableFlags( MinSizeRel )
@@ -167,11 +168,13 @@ macro ( WkCompilerSetup Project )
 		
 		MESSAGE( STATUS "GNU Compiler detected.")
 		
-		SET(GENERATE_PROFILING_INFO OFF CACHE BOOL "On to generate profiling information to use with gprof.")
-		SET(PROFILE_FLAG)	
-		IF(GENERATE_PROFILING_INFO)
-			SET(PROFILE_FLAG -pg)
-		ENDIF(GENERATE_PROFILING_INFO)
+		#IF ( COMMAND gprof )
+			SET(${Project}_PROFILE OFF CACHE BOOL "On to generate profiling information to use with gprof.")
+			SET(PROFILE_FLAG)	
+			IF(${Project}_PROFILE)
+				SET(PROFILE_FLAG -pg)
+			ENDIF(${Project}_PROFILE)
+		#ENDIF ( COMMAND gprof )
 
 		WkSetCFlags ( ${Project} All "${PROFILE_FLAG} -Wall -pedantic" )
 		WkSetCFlags ( ${Project} Debug "-g -D_DEBUG" )
