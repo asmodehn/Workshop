@@ -32,24 +32,16 @@ MACRO(WkTestBuild test_name project_name  )
 		
 			#if test arguments
 			IF ( ${ARGC} GREATER 2 )
+				#Forcing static libraries. test are always executables, and shared libraries or modules should be built and installed separately, if they ever have to come into a test...
 				SET(${project_name}_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 				SET(BUILD_SHARED_LIBS OFF)
 				FOREACH ( looparg ${ARGN} )
 					MESSAGE ( STATUS "==" )
 					MESSAGE ( STATUS "Cmake'ing ${test_name} Dependency : ${looparg}" )
-					#
-					# CMake doesnt support convenience lib right now
 					ADD_SUBDIRECTORY(test/ext/${looparg} test/ext/${looparg}_build EXCLUDE_FROM_ALL)
 					TARGET_LINK_LIBRARIES(${test_name} ${looparg})
 					ADD_DEPENDENCIES(${test_name} ${looparg})
-					# CMake prefer the manual method
-					#
-					#FILE(GLOB_RECURSE ${looparg}_SRCS RELATIVE ${PROJECT_SOURCE_DIR} ext/${looparg}/src/*.c ext/${looparg}/src/*.cpp ext/${looparg}/src/*.cc)
-					#FILE(GLOB_RECURSE ${looparg}_HEADERS RELATIVE ${PROJECT_SOURCE_DIR} ext/${looparg}/include/*.h ext/${looparg}/include/*.hh ext/${looparg}/include/*.hpp)
-					#MERGE("${DEPENDS_SRCS}" "${${looparg}_HEADERS};${${looparg}_SRCS}" DEPENDS_SRCS)
-					#
-					# Thats it !
-					#
+					INCLUDE_DIRECTORIES(test/ext/${looparg}/include)
 					MESSAGE ( STATUS "Cmake'ing ${looparg} : Done." )
 					MESSAGE ( STATUS "==" )
 				ENDFOREACH ( looparg )
