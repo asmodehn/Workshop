@@ -24,8 +24,8 @@ macro (WkBuild project_name project_type)
 	ELSE (CMAKE_BUILD_TYPE STREQUAL Release)
 		# To get the actual commands used
 		SET(CMAKE_VERBOSE_MAKEFILE ON CACHE INTERNAL "Verbose build commands enabled for Non Release build." FORCE)
-		# To have more readable filepaths used with the compiler.
-		SET (CMAKE_USE_RELATIVE_PATHS ON CACHE INTERNAL "Relative paths used in makefiles and projects for Non Release build." FORCE)
+		# To have more readable filepaths used with the compiler. However this make a dependency in a symbolic linked directory fail.
+		#SET (CMAKE_USE_RELATIVE_PATHS ON CACHE INTERNAL "Relative paths used in makefiles and projects for Non Release build." FORCE)
 	ENDIF (CMAKE_BUILD_TYPE STREQUAL Release)
 	
 	IF(${project_type} STREQUAL "LIBRARY")
@@ -64,6 +64,7 @@ macro (WkBuild project_name project_type)
 				MESSAGE ( STATUS "==" )
 				MESSAGE ( STATUS "Cmake'ing dependency : ${looparg}" )
 				#building in separate build directory in case the father project is built in source...
+				# TODO : BEWARE of circular dependencies...
 				ADD_SUBDIRECTORY(ext/${looparg} ext/${looparg}_build EXCLUDE_FROM_ALL)
 				MESSAGE ( STATUS "Cmake'ing ${looparg} : Done." )
 				MESSAGE ( STATUS "==" )
