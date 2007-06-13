@@ -25,12 +25,16 @@ extern "C" {
 #define LOGGER_PREFIX_MAXLEN 32
 #endif
 
-/* Store the prefix for the logger*/
-extern char logger_prefix[LOGGER_PREFIX_MAXLEN];
-
+#ifdef LOGGER_INTERNAL_LINKAGE
+/*If internal linkage, the source file Logger.c must also be included in the file already including Logger.h */
+#define LOGGER_FUNCTION_LINKAGE_TYPE static
+#else /* the default */
+#define LOGGER_FUNCTION_LINKAGE_TYPE extern	
+#endif
+	
 /* Adds a prefix to every logged message*/
-void logger_append_prefix(const char * prefix );
-void logger_clear_prefix(void);
+LOGGER_FUNCTION_LINKAGE_TYPE void logger_append_prefix(const char * prefix );
+LOGGER_FUNCTION_LINKAGE_TYPE void logger_clear_prefix(void);
 
 /* logger lvl from 0 to 7
  * This is likely to be enough for any purpose
@@ -44,15 +48,13 @@ void logger_clear_prefix(void);
 #define LOGGER_WARNING_LVL 6
 #define LOGGER_ERROR_LVL 7
 
-/* These are booleans flags : value 0 or 1 */
-extern unsigned short logger_prepend_date;
-extern unsigned short logger_prepend_time;
+LOGGER_FUNCTION_LINKAGE_TYPE void logger_set_prepend_date(void);
+LOGGER_FUNCTION_LINKAGE_TYPE void logger_set_prepend_time(void);
+LOGGER_FUNCTION_LINKAGE_TYPE void logger_unset_prepend_date(void);
+LOGGER_FUNCTION_LINKAGE_TYPE void logger_unset_prepend_time(void);
 
-void logger_set_prepend_date(void);
-void logger_set_prepend_time(void);
-void logger_unset_prepend_date(void);
-void logger_unset_prepend_time(void);
-
+/* TODO : Look for detection of C99 standard to use _VA_ARGS_ in macros */
+/* in C90 use () with arguments when calling the macro */
 #ifdef LOGGER_WITH_DEBUG_INFO
 	#define logger_dbglog( msg ) logger_write_fileline( LOGGER_DEBUGLOG_LVL, __FILE__, __LINE__ , (msg) )
 	#define logger_log( msg ) logger_write_fileline( LOGGER_LOG_LVL, __FILE__, __LINE__ , (msg) )
@@ -70,22 +72,14 @@ void logger_unset_prepend_time(void);
  * then the number of character in other targets ( file ) is forgotten.
  * Otherwise the number of character outputted  to previous target is returned
  */
-int logger_write(short level, const char * fmt, ... );
-int logger_write_fileline(short level, const char * file, int line, const char * fmt, ...);
+LOGGER_FUNCTION_LINKAGE_TYPE int logger_write(short level, const char * fmt, ... );
+LOGGER_FUNCTION_LINKAGE_TYPE int logger_write_fileline(short level, const char * file, int line, const char * fmt, ...);
 		
-/* defining minimal lvl to actually log */
-extern unsigned short logger_filter_lvl;
-/* defining minimal lvl to log to the console. should be > logger_filter_lvl */
-extern unsigned short logger_filter_lvl_show;
+LOGGER_FUNCTION_LINKAGE_TYPE short int logger_filter_lvl_out(short min_logged_lvl);
+LOGGER_FUNCTION_LINKAGE_TYPE short int logger_filter_lvl_show_out(short min_showed_lvl);
 
-short int logger_filter_lvl_out(short min_logged_lvl);
-short int logger_filter_lvl_show_out(short min_showed_lvl);
-
-/* logger target definition */
-extern FILE* logger_target;
-
-short int logger_set_target(FILE* target);
-short int logger_rem_target();
+LOGGER_FUNCTION_LINKAGE_TYPE short int logger_set_target(FILE* target);
+LOGGER_FUNCTION_LINKAGE_TYPE short int logger_rem_target();
 
 /* Ends C function definitions when using C++ */
 #ifdef __cplusplus

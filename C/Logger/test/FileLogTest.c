@@ -4,11 +4,12 @@
 int main ( int argc, char* argv[] )
 {
 	int res = 0;
+	FILE * logfile;
 	
 	dbgmem_debug_heap_init();
 	atexit ( dbgmem_debug_heap_fini );
 	
-	FILE * logfile = fopen( "testfile.log","w");
+	logfile = fopen( "testfile.log","w");
 	if ( logfile == NULL )
 	{
 		res=-1; /* file not opened */

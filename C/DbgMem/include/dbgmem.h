@@ -9,6 +9,7 @@
 #define DEBUG_MEMORY
 #endif
 
+/* define DEBUG_MEMORY for the Memory Debugger to actually check memory operations */
 #ifdef DEBUG_MEMORY
 
 #define calloc(n,s) dbgmem_calloc (n,s, __FILE__, __LINE__);
@@ -24,7 +25,7 @@
 
 /* Declarations */
 
-static int no_dbgmem = 0; /* set to one to dynamically cancel memory operator redefinition */
+extern int no_dbgmem; /* set to one to dynamically cancel memory operator redefinition. 0 is the default */
 
 void * dbgmem_calloc( size_t num, size_t size , const char* filename, int line);
 void * dbgmem_malloc( size_t size, const char* filename, int line);

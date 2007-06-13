@@ -8,7 +8,7 @@ INCLUDE ( CMake/WkTest.cmake )
 
 WkCompilerSetup( DbgMem )
 
-WkBuild( DbgMem LIBRARY )
+WkBuild( DbgMem LIBRARY)
 
 WkTestAllOnce( DbgMem )
 

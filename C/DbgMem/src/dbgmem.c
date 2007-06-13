@@ -1,4 +1,7 @@
 #include "dbgmem.h"
+#define LOGGER_INTERNAL_LINKAGE
+#include "../ext/Logger/include/Logger.h"
+#include "../ext/Logger/src/Logger.c"
 #include <assert.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -17,25 +20,28 @@
 #ifdef strdup
 #	undef strdup
 #endif
-
 #endif
+
+int no_dbgmem = 0;  /* set to one to dynamically cancel memory operator redefinition. 0 is the default */
 
 /* re-ordered parameters!  for varargs, format string always come before varargs, so to avoid confusion, 
 let's keep it that way.
 e.g. dbgmem_log("This is a log: %s, %d\n", "filename", 5, "This is the actual string", 5);
 Very confusing which are the parameters!
+Edit AV - disabled now using Logger
 */
+/* TODO: if multi-threaded, lock this. You don't want multiple threads logging to console at the same time
 void dbgmem_log(const char * file, int line, const char * fmt, ...)
 {
 	va_list argptr;             
 	va_start( argptr, fmt );
 
-	/* TODO: if multi-threaded, lock this section.  Don't want multiple threads logging to console at the same time */
 	printf("%s:%d: ", file, line);
 	vprintf(fmt, argptr);
 	
 	va_end(argptr);
 }
+*/
 
 /* Definition of the structure describing memory */
 
@@ -81,6 +87,22 @@ static dbgmem_list_entry_t dbgmem_blocklist;
 
 void dbgmem_debug_heap_init(void)
 {
+	
+	
+#ifdef _DEBUG /* Debug build mode : log everything */
+	logger_filter_lvl_out(LOGGER_DEBUGLOG_LVL);
+	logger_filter_lvl_show_out(LOGGER_DEBUGLOG_LVL);
+#else
+	#ifdef NDEBUG /* release build, log minimal stuff */
+	logger_filter_lvl_out(LOGGER_WARNING_LVL);
+	logger_filter_lvl_show_out(LOGGER_ERROR_LVL);
+	#else /* normal build, log useful stuff */
+	logger_filter_lvl_out(LOGGER_LOG_LVL);
+	logger_filter_lvl_show_out(LOGGER_WARNING_LVL);
+	#endif
+#endif
+	logger_append_prefix("DbgMem : ");
+
 	memset(&dbgmem_blocklist, 0, sizeof(dbgmem_list_entry_t));
 	dbgmem_list_init(&dbgmem_blocklist);
 }
@@ -110,15 +132,19 @@ int dbgmem_dump_blocks()
     dbgmem_list_entry_t* entry = dbgmem_list_head( &dbgmem_blocklist );
     while( entry != &dbgmem_blocklist ) {
         dbgmem_block_t* block = dbgmem_list_entry( entry, dbgmem_block_t, list );
-        dbgmem_log(block->filename, block->line, "Leaked %d bytes [0x%08x]\n", block->size, block + 1);
+        /*dbgmem_log(block->filename, block->line, "Leaked %d bytes [0x%08x]\n", block->size, block + 1);*/
+	logger_write_fileline(LOGGER_WARNING_LVL,block->filename,block->line,"Leaked %d bytes [0x%08x]\n", block->size, block + 1);
 		dbgmem_hexdump( block + 1, min(100, block->size) );
         entry = entry->next;
     }
 
+    /* Only display No mem leaks if it was actually activated */
+#ifdef DEBUG_MEMORY
     if ( dbgmem_list_isempty(&dbgmem_blocklist ) ) {
-        printf("No memory leaks detected.\n");
+        logger_write(LOGGER_LOG_LVL,"No memory leaks detected.\n");
 		return 1;
     }
+#endif
 	return 0;
 }
 
@@ -136,7 +162,8 @@ void * dbgmem_store( size_t size, const char* filename, int line )
 	
 	if (block == NULL)
 	{
-		dbgmem_log(filename, line, "Error: malloc returned NULL");
+		/*dbgmem_log(filename, line, "Error: malloc returned NULL");*/
+		logger_write_fileline(LOGGER_WARNING_LVL,filename, line, "Error: malloc returned NULL\n");
 		return NULL; 
 	}
 	
@@ -163,28 +190,28 @@ void * dbgmem_mvstore( void* ptr, size_t size, const char* filename, int line )
 	block = (dbgmem_block_t *) ptr - 1 ;
 	if ( block -> checker != DBGMEM_CHECKER )
 	{
-		dbgmem_log(filename, line, "Error: Corrupted Memory.");
-		assert(0);
+		logger_write_fileline(LOGGER_ERROR_LVL,filename, line,"Error: Corrupted Memory.\n");
+		assert(0 && " Break everything on Corrupted Memory Error ");
 	}
 	
 	/* Compare the checker at the end of the memory block */
 	if ( 0 != memcmp( (char*)ptr + block->size, &DBGMEM_CHECKER, sizeof( DBGMEM_CHECKER ) ) )
 	{
-		dbgmem_log(filename, line, "Error: Checker corrupted.");
-		assert(0);
+		logger_write_fileline(LOGGER_ERROR_LVL,filename, line,"Error: Checker corrupted in block allocated in %s at line %d.\n", block->filename, block->line);
+		assert(0 && " Break everything on Checker corrupted Error ");
 	}
 	
 	block = (dbgmem_block_t*) realloc(block, sizeof(dbgmem_block_t) + size + DBGMEM_CHECKER_SIZE);
 	
 	if ( block -> checker != DBGMEM_CHECKER )
 	{
-		dbgmem_log(filename, line, "Error: Corrupted Memory after realloc.");
-		assert(0);
+		logger_write_fileline(LOGGER_ERROR_LVL,filename, line,"Error: Corrupted Memory after realloc.\n");
+		assert(0 && " Break everything on Corrupted Memory Error ");
 	}
 	
 	if (block == NULL)
 	{
-		dbgmem_log(filename, line, "Error: realloc returned NULL");
+		logger_write_fileline(LOGGER_WARNING_LVL,filename, line,"Error: realloc returned NULL\n");
 		return NULL; 
 	}
 	
@@ -212,15 +239,15 @@ void dbgmem_remove( void* ptr, const char* filename, int line  )
 	block = (dbgmem_block_t *) ptr - 1 ;
 	if ( block -> checker != DBGMEM_CHECKER )
 	{
-		dbgmem_log(filename, line, "Error: Corrupted Memory.");
-		assert(0);
+		logger_write_fileline(LOGGER_ERROR_LVL,filename, line,"Error: Corrupted Memory.\n");
+		assert(0 && " Break everything on Corrupted Memory Error ");
 	}
 	
 	/* Compare the checker at the end of the memory block */
 	if ( 0 != memcmp( (char*)ptr + block->size, &DBGMEM_CHECKER, sizeof( DBGMEM_CHECKER ) ) )
 	{
-		dbgmem_log(filename, line, "Error: Checker corrupted.");
-		assert(0);
+		logger_write_fileline(LOGGER_ERROR_LVL,filename, line,"Error: Checker corrupted in block allocated in %s at line %d.\n", block->filename, block->line);
+		assert(0 && " Break everything on Checker corrupted Error ");
 	}
 	
 	/* This looks painfully slow on a huge system!! */
@@ -241,12 +268,12 @@ void * dbgmem_calloc( size_t num, size_t size , const char* filename, int line)
     ptr = dbgmem_store( size, filename, line);
 
     if ( ptr == NULL ) {
-        dbgmem_log(filename, line, "calloc of %d bytes [0x%08x] FAILED !\n", tsize, ptr);
+        logger_write_fileline(LOGGER_WARNING_LVL,filename, line,"calloc of %d bytes [0x%08x] FAILED !\n", tsize, ptr);
         return NULL;
     }
 
     memset( ptr, 0, size ); /* calloc specificity : all bits 0 */
-    dbgmem_log(filename, line, "calloc of %d bytes [0x%08x] OK.\n", tsize, ptr);
+    logger_write_fileline(LOGGER_DEBUGLOG_LVL,filename, line,"calloc of %d bytes [0x%08x] OK.\n", tsize, ptr);
     return ptr;
 }
 
@@ -257,11 +284,11 @@ void * dbgmem_malloc( size_t size, const char* filename, int line)
     
     ptr = dbgmem_store( size, filename, line);
     if ( ptr == NULL ) {
-    	/*dbgmem_log(filename, line, "malloc of %d bytes [0x%08x] FAILED !\n", size, ptr);*/
+    	logger_write_fileline(LOGGER_WARNING_LVL,filename, line,"malloc of %d bytes [0x%08x] FAILED !\n", size, ptr);
 		return NULL;
     }
     
-    /*dbgmem_log( filename, line, "malloc of %d bytes [0x%08x] OK.\n", size, ptr);*/
+    logger_write_fileline(LOGGER_DEBUGLOG_LVL,filename, line, "malloc of %d bytes [0x%08x] OK.\n", size, ptr);
     return ptr;
 }
 
@@ -274,13 +301,13 @@ void * dbgmem_realloc( void *ptr, size_t size, const char* filename, int line)
 
     if ( size == 0 ) {
         dbgmem_remove( ptr, filename, line);
-        /*dbgmem_log(filename, line, "memory freed on realloc of %d bytes [0x%08x]",size, ptr);*/
+        logger_write_fileline(LOGGER_WARNING_LVL,filename, line,"memory freed on realloc of %d bytes [0x%08x]",size, ptr);
         return NULL;
     }
 
     newptr = dbgmem_mvstore(ptr, size, filename, line);
 
-    /*dbgmem_log( filename, line, "realloc of %d bytes [0x%08x] OK.\n", size, ptr);*/
+    logger_write_fileline(LOGGER_DEBUGLOG_LVL,filename, line, "realloc of %d bytes [0x%08x] OK.\n", size, ptr);
     return newptr;
 }
 
@@ -295,11 +322,11 @@ char* dbgmem_strdup( const char* str, const char* filename, int line )
     size = strlen( str ) + 1;
     ptr = (char*)dbgmem_store(size, filename, line);
     if ( ptr == NULL ) {
-	/*dbgmem_log(filename, line, "strdup of %d bytes for %s [0x%08x] FAILED !\n", size, str, ptr);*/
+	logger_write_fileline(LOGGER_WARNING_LVL,filename, line,"strdup of %d bytes for %s [0x%08x] FAILED !\n", size, str, ptr);
         return NULL;
     }
 
-    /*dbgmem_log( filename, line, "strdup of %d bytes for %s [0x%08x] OK.\n", size, str, ptr);*/
+    logger_write_fileline(LOGGER_DEBUGLOG_LVL,filename, line,"strdup of %d bytes for %s [0x%08x] OK.\n", size, str, ptr);
 
     strcpy( ptr, str );
 
@@ -312,6 +339,6 @@ void dbgmem_free(void *ptr, const char* filename, int line)
 		free( ptr );
 	else if ( ptr ) {
 		dbgmem_remove( ptr, filename, line);
-		/*dbgmem_log( filename, line, "free [0x%08x] OK.\n", ptr);*/
+		logger_write_fileline(LOGGER_DEBUGLOG_LVL,filename, line, "free [0x%08x] OK.\n", ptr);
 	}
 }
