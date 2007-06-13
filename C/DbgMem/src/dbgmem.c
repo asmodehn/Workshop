@@ -1,7 +1,4 @@
 #include "dbgmem.h"
-#define LOGGER_INTERNAL_LINKAGE
-#include "../ext/Logger/include/Logger.h"
-#include "../ext/Logger/src/Logger.c"
 #include <assert.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -21,6 +18,11 @@
 #	undef strdup
 #endif
 #endif
+
+/* included after hte undef dbgmem_* calls to avoid circular call in logger also */
+#define LOGGER_INTERNAL_LINKAGE
+#include "../ext/Logger/include/Logger.h"
+#include "../ext/Logger/src/Logger.c"
 
 int no_dbgmem = 0;  /* set to one to dynamically cancel memory operator redefinition. 0 is the default */
 
