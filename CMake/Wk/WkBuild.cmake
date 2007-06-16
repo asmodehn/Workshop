@@ -1,3 +1,27 @@
+
+MACRO(MERGE ALIST BLIST OUTPUT)
+   SET(BTEMP ${BLIST})
+   FOREACH(A ${ALIST})
+       SET(SORTED)
+       SET(UNINSERTED 1)
+       FOREACH(B ${BTEMP})
+           IF(${UNINSERTED})
+               IF(${A} STRLESS ${B})
+                   SET(SORTED ${SORTED} ${A})
+                   SET(UNINSERTED 0)
+               ENDIF(${A} STRLESS ${B})
+           ENDIF(${UNINSERTED})
+           SET(SORTED ${SORTED} ${B})
+       ENDFOREACH(B ${BLIST})
+       IF(${UNINSERTED})
+           SET(SORTED ${SORTED} ${A})
+       ENDIF(${UNINSERTED})
+       SET(BTEMP ${SORTED})
+   ENDFOREACH(A ${ALIST})
+   SET(${OUTPUT} ${BTEMP})
+ENDMACRO(MERGE ALIST BLIST OUTPUT)
+
+
 #
 # Configure and Build process based on well-known hierarchy
 # You need include and src in your hierarchy at least for this to work correctly
@@ -5,8 +29,6 @@
 #
 
 #WkBuild( project_name EXECUTABLE | LIBRARY [dependencies [...] ] )
-
-include (CMake/MergeLists.cmake)
 
 macro (WkBuild project_name project_type)
 

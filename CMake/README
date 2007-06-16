@@ -2,3 +2,10 @@ This section contains utilities for CMAKE.
 
 Simply include the cmake file you want to use, and call the macro where it suits
 you.
+
+In the Wk subdirectory you will find a set of script to help you build software,
+as long as you keeps the hierarchy similar to WkHierarchySample
+
+One good practice is to use svn::external directory property to automatically
+fetch those in your project.
+
