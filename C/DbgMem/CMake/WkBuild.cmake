@@ -1,1 +1,1 @@
-../../../CMake/WkBuild.cmake
+../../../CMake/Wk/WkBuild.cmake

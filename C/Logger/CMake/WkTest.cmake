@@ -1,1 +1,1 @@
-../../../CMake/WkTest.cmake
+../../../CMake/Wk/WkTest.cmake

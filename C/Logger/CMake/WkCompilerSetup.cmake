@@ -1,1 +1,1 @@
-../../../CMake/WkCompilerSetup.cmake
+../../../CMake/Wk/WkCompilerSetup.cmake

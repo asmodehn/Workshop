@@ -18,11 +18,22 @@ extern "C" {
  * Usable defines :
  * LOGGER_WITH_DEBUG_INFO : adds source filename and line number to log output when using macros
  * LOGGER_DISABLE_STDOUT_TARGET : completely disable std output.
- * LOGGER_PREFIX_MAXLEN : the maximum length of the prefix.
+ * LOGGER_MSG_MAXLEN : the maximum length of the message that can be logged.
+ * LOGGER_CUSTOM_PREFIX_MAXLEN : the maximum length of the custom prefix prepended
+ * LOGGER_FILELINE_PREFIX_MAXLEN : the maximum length of the "file:line:" prepended
  */
  
-#ifndef LOGGER_PREFIX_MAXLEN
-#define LOGGER_PREFIX_MAXLEN 32
+#ifndef LOGGER_MSG_MAXLEN
+#define LOGGER_MSG_MAXLEN 4096
+#endif
+
+#ifndef LOGGER_CUSTOM_PREFIX_MAXLEN
+#define LOGGER_CUSTOM_PREFIX_MAXLEN 512
+#endif
+
+	
+#ifndef LOGGER_FILELINE_PREFIX_MAXLEN
+#define LOGGER_FILELINE_PREFIX_MAXLEN 512
 #endif
 
 #ifdef LOGGER_INTERNAL_LINKAGE

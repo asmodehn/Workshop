@@ -13,12 +13,11 @@
  */
  
 /* Adds a prefix to every logged message*/
-static char logger_prefix[LOGGER_PREFIX_MAXLEN] = "";
+static char logger_prefix[LOGGER_CUSTOM_PREFIX_MAXLEN] = "";
 
 LOGGER_FUNCTION_LINKAGE_TYPE void logger_append_prefix(const char * prefix )
 {
-	strncat(logger_prefix, prefix, LOGGER_PREFIX_MAXLEN - 1);
-	logger_prefix[LOGGER_PREFIX_MAXLEN-1] = '\0'; /* just to make sure */
+	strncat(logger_prefix, prefix, sizeof(logger_prefix) - strlen(logger_prefix) - 1);
 }
 
 LOGGER_FUNCTION_LINKAGE_TYPE void logger_clear_prefix(void)
@@ -42,48 +41,46 @@ static FILE* logger_target;
 static int logger_write_target_pv(short lvl, const char * fmt, va_list argptr )
 {
 	int nbchar = 0;
-	char * dtprefixed = strdup("");
-	char * dtformat = strdup("");
+	char dtprefixed_msg[21 + LOGGER_MSG_MAXLEN] = "";
+	char dtformat[19] = "";
 	time_t tp;
 	
-	if ( logger_prepend_date ) strncat(dtformat,"%Y/%m/%d ",9);
-	if ( logger_prepend_time ) strncat(dtformat,"%H:%M:%S ",9);
+	if ( logger_prepend_date ) strncat(dtformat,"%Y/%m/%d ",sizeof(dtformat) - strlen(dtformat) -1);
+	if ( logger_prepend_time ) strncat(dtformat,"%H:%M:%S ",sizeof(dtformat) - strlen(dtformat) -1);
 
 	time(&tp);
-	strftime( dtprefixed, 32, dtformat, localtime(&tp) );
-	strncat( dtprefixed, fmt, strlen(fmt));
+	strftime( dtprefixed_msg, sizeof(dtprefixed_msg), dtformat, localtime(&tp) );
+	strncat( dtprefixed_msg, fmt, sizeof(dtprefixed_msg) - strlen(dtprefixed_msg) -1);
 	
 	/* TODO: if multi-threaded, lock this section.  Don't want multiple threads logging at the same time */
 	if ( logger_target != NULL )
 	{
-		nbchar = vfprintf(logger_target,dtprefixed, argptr);
+		nbchar = vfprintf(logger_target,dtprefixed_msg, argptr);
 	}
 #ifndef LOGGER_DISABLE_STDOUT_TARGET
 	if ( lvl >= logger_filter_lvl_show )
 	{
-		nbchar = vfprintf(stdout,dtprefixed, argptr);
+		nbchar = vfprintf(stdout,dtprefixed_msg, argptr);
 	}
 #endif
-	free(dtformat);
-	free(dtprefixed);
 	return nbchar;
 }
 
 LOGGER_FUNCTION_LINKAGE_TYPE int logger_write(short level, const char * fmt, ... )
 {
 	int nbchar = 0;
-	char * prefmt = strdup(logger_prefix);
+	char msg[LOGGER_MSG_MAXLEN] = "";
 	va_list argptr;
 	va_start( argptr, fmt );
 
 	if ( level >= logger_filter_lvl )
 	{
-		/* adding prefix */
-		strncat(prefmt, fmt, strlen(fmt));
-		nbchar = logger_write_target_pv(level, prefmt,argptr);
+		/* adding predefined message's prefix */
+		strncat(msg, logger_prefix, sizeof(msg) - strlen(msg) - 1);
+		strncat(msg, fmt, sizeof(msg) - strlen(msg) - 1);
+		nbchar = logger_write_target_pv(level, msg,argptr);
 	}
 	va_end(argptr);
-	free(prefmt);
 	return nbchar;
 }
 
@@ -91,19 +88,21 @@ LOGGER_FUNCTION_LINKAGE_TYPE int logger_write_fileline(short level, const char *
 {
 	int nbchar = 0;
 	va_list argptr;
-	char * prefmt = strdup("%s:%d:");
-	char * buf = (char *) malloc( 32 * sizeof ( char ));
+	char filelinebuf [LOGGER_FILELINE_PREFIX_MAXLEN] = "";
+	char msg[LOGGER_MSG_MAXLEN] = "";
 	va_start( argptr, fmt );
+	
 
 	if ( level >= logger_filter_lvl )
 	{
-		/* adding prefix */
-		sprintf(buf,prefmt, file, line);
-		strncat(buf, fmt, strlen(fmt));
-		nbchar = logger_write_target_pv(level, buf, argptr );
+		/* adding predefined message's prefix */
+		strncat(msg, logger_prefix, sizeof(msg) - strlen(msg) - 1);
+		snprintf(filelinebuf,sizeof(filelinebuf),"%s:%d:", file, line);
+		strncat(msg, filelinebuf, sizeof(msg) - strlen(msg) -1);
+		strncat(msg, fmt, sizeof(msg) - strlen(msg) -1);
+		nbchar = logger_write_target_pv(level, msg, argptr );
 	}
 	va_end(argptr);
-	free(prefmt);
 	return nbchar;
 }
 
