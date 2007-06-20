@@ -12,22 +12,37 @@ MACRO(WkTestBuild test_name project_name  )
 
 	IF(${project_name}_ENABLE_TESTS)
 		ENABLE_TESTING()
-	
+		
 		FILE(GLOB testsource RELATIVE ${PROJECT_SOURCE_DIR} test/${test_name}.c test/${test_name}.cc test/${test_name}.cpp )
 		#MESSAGE ( STATUS "Detected ${test_name} Source : ${testsource}" )
 		
 		#To make sure the source file exists
 		IF (testsource)
+			#Create output directories
+			IF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test )
+				FILE ( MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/test )
+			ENDIF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test )
+			
+			IF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test/${CMAKE_BUILD_TYPE} )
+				FILE ( MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/test/${CMAKE_BUILD_TYPE} )
+			ENDIF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test/${CMAKE_BUILD_TYPE} )
+			
+			#Set where main library & test executables should be founded (useful for debuging under VS)
+			SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/test)
+			#SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+			
+			#build
 			ADD_EXECUTABLE(${test_name} ${testsource})
 			TARGET_LINK_LIBRARIES(${test_name} ${project_name})
 			ADD_DEPENDENCIES(${test_name} ${project_name})
 			GET_TARGET_PROPERTY(${test_name}_LOCATION ${test_name} LOCATION)
-			# moving test target to test subdir
-			IF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test )
-				FILE ( MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/test )
-			ENDIF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test )
-			ADD_CUSTOM_COMMAND( TARGET ${test_name} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy ${${test_name}_LOCATION} ${PROJECT_BINARY_DIR}/test/)
-			ADD_CUSTOM_COMMAND( TARGET ${test_name} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E remove ${${test_name}_LOCATION} )
+								
+			#move test target to test subdir with build type management
+			#ADD_CUSTOM_COMMAND( TARGET ${test_name} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy ${${test_name}_LOCATION} ${PROJECT_BINARY_DIR}/test/
+			#										COMMENT "Copying File ${test_name} From ${${test_name}_LOCATION} To ${PROJECT_BINARY_DIR}/test/" )
+			
+			#ADD_CUSTOM_COMMAND( TARGET ${test_name} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E remove ${${test_name}_LOCATION} 
+			#										COMMENT "Removing File ${test_name} From ${${test_name}_LOCATION}" )
 		
 			#if test arguments
 			IF ( ${ARGC} GREATER 2 )
