@@ -97,7 +97,13 @@ LOGGER_FUNCTION_LINKAGE_TYPE int logger_write_fileline(short level, const char *
 	{
 		/* adding predefined message's prefix */
 		strncat(msg, logger_prefix, sizeof(msg) - strlen(msg) - 1);
+
+#ifdef _MSC_VER //becoz VS2005 doesn't know have the snprintf function even if it's in the standard :/
+		sprintf_s(filelinebuf,sizeof(filelinebuf),"%s:%d:", file, line);
+#else
 		snprintf(filelinebuf,sizeof(filelinebuf),"%s:%d:", file, line);
+#endif
+		
 		strncat(msg, filelinebuf, sizeof(msg) - strlen(msg) -1);
 		strncat(msg, fmt, sizeof(msg) - strlen(msg) -1);
 		nbchar = logger_write_target_pv(level, msg, argptr );

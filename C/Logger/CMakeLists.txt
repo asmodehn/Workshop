@@ -10,4 +10,9 @@ WkCompilerSetup( Logger )
 
 WkBuild( Logger LIBRARY )
 
-WkTestAllOnce( Logger DbgMem )
+#DEBUGING MEMORY WITH OR WITHOUT VLD
+IF (CHECK_MEM_LEAKS)
+	WkTestAllOnce( Logger )
+ELSE (CHECK_MEM_LEAKS)
+	WkTestAllOnce( Logger DbgMem )
+ENDIF (CHECK_MEM_LEAKS)

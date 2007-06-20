@@ -1,11 +1,13 @@
-#include "dbgmem.h"
+#ifndef VLD
+	#include "dbgmem.h"
+#endif
 #include "Logger.h"
 
 int main ( int argc, char* argv[] )
 {
 	int res = 0;
-	dbgmem_debug_heap_init();
-	atexit ( dbgmem_debug_heap_fini );
+	/*dbgmem_debug_heap_init();
+	atexit ( dbgmem_debug_heap_fini );*/
 	
 	/* Log in a file to see difference with console output */
 	FILE * logfile = fopen("testfile.log","w");
@@ -46,6 +48,9 @@ int main ( int argc, char* argv[] )
 		fclose(logfile);
 	}
 	
-	dbgmem_dump_blocks();
+	#ifndef VLD
+		dbgmem_dump_blocks();
+	#endif
+
 	return res;
 }

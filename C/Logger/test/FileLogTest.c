@@ -1,4 +1,6 @@
-#include "dbgmem.h"
+#ifndef VLD
+	#include "dbgmem.h"
+#endif
 #include "Logger.h"
 
 int main ( int argc, char* argv[] )
@@ -6,8 +8,8 @@ int main ( int argc, char* argv[] )
 	int res = 0;
 	FILE * logfile;
 	
-	dbgmem_debug_heap_init();
-	atexit ( dbgmem_debug_heap_fini );
+	/*dbgmem_debug_heap_init();
+	atexit ( dbgmem_debug_heap_fini );*/
 	
 	logfile = fopen( "testfile.log","w");
 	if ( logfile == NULL )
@@ -24,7 +26,9 @@ int main ( int argc, char* argv[] )
 		}
 	}
 
-	dbgmem_dump_blocks();
+	#ifndef VLD
+		dbgmem_dump_blocks();
+	#endif
 
 	return res;
 }

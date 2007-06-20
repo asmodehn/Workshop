@@ -1,6 +1,10 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#ifdef VLD
+	#include "vld.h"
+#endif
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>

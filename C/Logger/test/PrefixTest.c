@@ -1,11 +1,13 @@
-#include "dbgmem.h"
+#ifndef VLD
+	#include "dbgmem.h"
+#endif
 #include "Logger.h"
 
 int main ( int argc, char* argv[] )
 {
 	int res = 0;
-	dbgmem_debug_heap_init();
-	atexit ( dbgmem_debug_heap_fini );
+	/*dbgmem_debug_heap_init();
+	atexit ( dbgmem_debug_heap_fini );*/
 	
 	logger_clear_prefix();
 	logger_append_prefix( "Testing " );
@@ -52,7 +54,9 @@ int main ( int argc, char* argv[] )
 		res=1; /* error : number of character outputted different from what was expected */
 	}
 
-	dbgmem_dump_blocks();
+	#ifndef VLD
+		dbgmem_dump_blocks();
+	#endif
 
 	return res;
 }

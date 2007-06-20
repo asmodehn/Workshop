@@ -48,6 +48,12 @@ macro (WkBuild project_name project_type)
 		SET(CMAKE_VERBOSE_MAKEFILE ON CACHE INTERNAL "Verbose build commands enabled for Non Release build." FORCE)
 		# To have more readable filepaths used with the compiler. However this make a dependency in a symbolic linked directory fail.
 		#SET (CMAKE_USE_RELATIVE_PATHS ON CACHE INTERNAL "Relative paths used in makefiles and projects for Non Release build." FORCE)
+		
+		#VLD
+		SET(CHECK_MEM_LEAKS OFF CACHE BOOL "On to check memory with VLD (must be installed)")
+		IF(CHECK_MEM_LEAKS)
+			ADD_DEFINITIONS(-DVLD)
+		ENDIF(CHECK_MEM_LEAKS)
 	ENDIF (CMAKE_BUILD_TYPE STREQUAL Release)
 	
 	IF(${project_type} STREQUAL "LIBRARY")
