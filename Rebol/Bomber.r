@@ -16,13 +16,30 @@ rebomb: context [
 		]
 	]
 
-	lay: [ 
-		size: 400x300
-		panel: 200x200
+	lay: [
+		origin 0x0 space 0x0 across 
+		box black 200x200
 	]
 	
 
 ]
+
+
+
+;view center-face gui: layout [
+;    origin 0x0 space 0x0 across 
+;;    style p button 60x60 [
+;        if not find [0x60 60x0 0x-60 -60x0] 
+;            face/offset - empty/offset [exit]
+;        temp: face/offset face/offset: empty/offset 
+;            empty/offset: temp
+;    ]
+;;    p "A" p "B" p "C" p "D" return p "E" p "F" p "G" p "H" return
+;    p "I" p "J" p "K" p "L" return p "M" p "N" p "O"  
+;    empty: p 200.200.200 edge [size: 0]
+;]
+
+
 
 insert-event-func func [face event] bind [
 	if all [
@@ -42,5 +59,5 @@ insert-event-func func [face event] bind [
 if any [not system/script/args empty? form system/script/args] [
 	random/seed now
 	rebomb/init
-    view layout rebomb/lay
+    view center-face layout/size rebomb/lay 200x200
 ]
