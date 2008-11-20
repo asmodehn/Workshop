@@ -1,0 +1,4 @@
+Local scripts can be placed in this folder. To do so, edit
+your local/index.r file to include the filenames for the
+files that you want to include. You can right click on the
+local folder icon to edit or reload it.
