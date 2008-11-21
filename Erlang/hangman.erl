@@ -29,19 +29,27 @@ guessword(Word,Letters) ->
 hideword ( Word, Letters ) -> hideword( lists:reverse(Word), Letters, [], [] ).
 
 %TOFIX :  when multiple time the same letter, we need to find them ALL.
-%TOFIX : word hiddeninteh right order... not reversed ==> OK TO TEST
+%TOFIX : when finding letter position 2 should not re-hide letter position 1...
+
+%Letter in Word same as letter guessed
 hideword( [L | W] , [L | Wt], Nl , H ) ->
 	%io:format("hideword( [L ~w | W ~w] , [L ~w| Wt ~w], Nl ~w , H ~w) ~n ->", [L,W,L,Wt,Nl,H] ),
-	hideword ( W , [L | Wt] , Nl ,[ L | H ] );
+	hideword ( W , lists:reverse(Nl) ++ [L | Wt] , [] ,[ L | H ] );
+	%Letter in word move to hidden word
 	
+%Letter in Word different than letter guessed	
 hideword( [L | W] , [Lt | Wt], Nl , H ) -> 
 	%io:format("hideword( [L ~w | W ~w] , [Lt ~w| Wt ~w], Nl ~w, H ~w ) ~n ->", [L,W,Lt,Wt,Nl,H] ),
 	hideword ( [L | W] , Wt , [ Lt | Nl ] , H );
+	%Letter guessed move to letter backlist
 	
+%Letter guessed list finished but some letter in word remaining
 hideword( [_ | W] , [], Nl , H ) ->
 	%io:format("hideword( [_ | W ~w] , [], Nl ~w, H ~w) ~n ->", [W,Nl,H] ),
 	hideword ( W , Nl , [], [ $* | H ] );
+	%append "*" to word, pass letter in word, and start list of letter again.
 	
+%Word parsing finished -> display it	
 hideword( [], _, _, H ) -> io:format("~s ~n",[H]).
 	
 	
