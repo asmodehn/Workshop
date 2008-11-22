@@ -1,5 +1,5 @@
 REBOL [
-	title: "ReBomb"
+	title: "Hangman"
 	author: "Asmodehn"
 	version: 0.0.1
 	date: 15-Nov-2008
@@ -10,7 +10,7 @@ rebomb: context [
 	sprite-size: 20x20
 	pause: no
 	
-	init:
+	init: reduce [ random/seed now ]
 
 	; the main layout. originally with startup face. will hcange later based on game state
 	lay: make face [
@@ -20,11 +20,11 @@ rebomb: context [
 	]
 
 	startup: layout [
-				text "ReBomb"
-				button "Start" [ hide startup show gamerunning ]
+				text "Hangman"
+				button "Start" [ lay/pane: [ gamerunning ] show lay ]
 		]
 
-	gamerunning: make face [] 
+	gamerunning: layout[ box red 200x200 ]
 
 	gameover: make face []
 
@@ -48,7 +48,6 @@ insert-event-func func [face event] bind [
 ] in rebomb 'self
 
 if any [not system/script/args empty? form system/script/args] [
-	random/seed now
 	rebomb/init
     view center-face rebomb/lay
 ]
