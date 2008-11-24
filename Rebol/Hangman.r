@@ -8,32 +8,42 @@ REBOL [
 
 hangman: context [
 	sprite-size: 20x20
-	text-size: 18
 	;TODO :  font loading
-	main-size: 800x600
+	main-size: 640x480
 	hangword: "hangman"
-	letter-list: ['a 'b 'c 'd ]
+	hiddenword: "________"
+	unguessed: [ #"a" - #"z"]
+	guessed: []
 
 	init: reduce [ random/seed now ]
 
+	hideword: func [] [ 
+	
+	]
 
 	startup: layout/offset [
 					origin 0x0
 					space 0x0
 					size main-size
 					image %Hangman-data/stick0.bmp effect [ aspect ] 
-					image %Hangman-data/title.png effect [ aspect ]
-					across
-					start-btn: button %Hangman-data/Start.png backcolor white 
+					image 506x65 %Hangman-data/title.png effect [ fit ]
+					return
+					start-btn: button 134x50 %Hangman-data/Start.png backcolor white 
 					backcolor green
 	] 0x0
 
 	gamerunning: layout/offset [  
+				origin 0x0
+				space 0x0
 				size main-size
-				text hangword
-				text "letters used"				
-				text "Choose a letter"
+				image %Hangman-data/stick0.bmp effect [ aspect ]
+				text hiddenword bold red
+				return			
+				btn-pane: box 134x200 coal
+				text "Already guessed:" 
+				used-pane: box 134x200 coal
 				backcolor blue
+
 	] 0x0
 
 	gameover: layout/offset [
@@ -59,11 +69,45 @@ hangman: context [
 					
 	;]
 	;append startup/pane start-btn
-	start-btn/action: [ main/pane: [ gamerunning ] show main ]	 
-	show startup  
+	start-btn/action: [ main/pane: [ gamerunning ] show main ]	   
 
 	main/pane: [ startup ]
-	show center-face main
+
+
+	draw-text: func [ text ] []
+
+	guess: func [ letter ] [
+		alert rejoin [ "char:" letter " wordlength: " length? hangword ]
+
+		repeat pos length? hangword [
+        if/else letter = pick hangword pos 
+		[
+			alert "found" 
+			poke hiddenword pos letter
+		]
+		[ 
+			alert "notfound"
+			 loselife
+		]
+		append guessed letter
+		remove unguessed letter
+      ]
+		
+		show gamerunning						
+	] 	
+	
+	loselife: func [] [
+
+	]	
+
+	btn-pane/pane: layout/offset [
+		origin 0x0
+		space 0x0
+		style btn button 32x32
+		btn "a" [ guess #"a" ]
+		backcolor red		
+	] 0x0	
+
 
 ]
 
