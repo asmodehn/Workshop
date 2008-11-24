@@ -10,73 +10,60 @@ hangman: context [
 	sprite-size: 20x20
 	text-size: 18
 	;TODO :  font loading
-	main-size: 320x240
-	pause: no
+	main-size: 800x600
 	hangword: "hangman"
 	letter-list: ['a 'b 'c 'd ]
 
 	init: reduce [ random/seed now ]
 
-	faces: context[	
-		start-btn:  make face [
-					image: load %Hangman-data/Start.png
-					effect: [ fit ]
-					color:yellow
-					action: [ view layout [ text "yop" ] ]
-				]
-		hangpic: make face [
-					image: load %Hangman-data/stick0.bmp 
-					effect: [ fit ]
-					color:blue
-				]
-		hangtitle: make face [
-					text: "Hangman"
-					color: red
-				]
-	]
-	
 
-	debug: layout [    
-			    label "Debug:"
-			    console: field 100 [attempt [do console/text]]
-	]
+	startup: layout/offset [
+					origin 0x0
+					space 0x0
+					size main-size
+					image %Hangman-data/stick0.bmp effect [ aspect ] 
+					image %Hangman-data/title.png effect [ aspect ]
+					across
+					start-btn: button %Hangman-data/Start.png backcolor white 
+					backcolor green
+	] 0x0
 
-
-	;startup layout
-	startup: make face [
-				offset: 0x0
-				size: main-size
-				color: green
-				pane: reduce [
-					faces/hangpic
-					faces/hangtitle
-					faces/start-btn
-				]
-			]
-			faces/hangtitle/offset: 0x100
-			faces/hangtitle/size: 100x20
-			faces/start-btn/offset: 0x150
-			faces/start-btn/size: 100x30
-			;faces/start-btn/action: 
-
-	gamerunning: layout [
+	gamerunning: layout/offset [  
+				size main-size
 				text hangword
 				text "letters used"				
 				text "Choose a letter"
-				]
+				backcolor blue
+	] 0x0
 
-	gameover: make face []
-
-	gamesuccess: make face []
-
-	; the main layout. originally with startup face. will change based on game state
-	lay: make face [
-			offset: 0x0
-			color: black
-			size: main-size
-			text: "Hangman"
-			pane: reduce [ startup ]
+	gameover: layout/offset [
+				size main-size
+				backcolor red	
+	] 0x0
+ 
+	gamesuccess: layout/offset [ 
+				size main-size
+				backcolor purple
+	] 0x0
+	
+	main: layout [
+				size main-size 
+				title "Hangman"
+				backcolor black
 	]
+	
+	;start-btn: layout [ 
+	;				button %Hangman-data/Start.png backcolor white
+					;[ alert "click" ] 
+					;[ main/pane: [ gamerunning ] show gamerunning ]
+					
+	;]
+	;append startup/pane start-btn
+	start-btn/action: [ main/pane: [ gamerunning ] show main ]	 
+	show startup  
+
+	main/pane: [ startup ]
+	show center-face main
 
 ]
 
@@ -97,5 +84,5 @@ insert-event-func func [face event] bind [
 
 if any [not system/script/args empty? form system/script/args] [
 	hangman/init
-    view center-face hangman/lay
+    view center-face hangman/main
 ]
