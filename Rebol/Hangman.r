@@ -11,15 +11,13 @@ hangman: context [
 	;TODO :  font loading
 	main-size: 640x480
 	hangword: "hangman"
-	hiddenword: "________"
-	unguessed: [ #"a" #"b" #"c" #"d" #"e" #"f" #"g" #"h" #"i" #"j" #"z"]
+	hiddenword: "_______"
+	unguessed: [ #"a" #"b" #"c" #"d" #"e" #"f" #"g" #"h" #"i" #"j" #"k" #"l"
+				 #"m" #"n" #"o" #"p" #"q" #"r" #"s" #"t" #"u" #"v" #"w" #"x" #"y" #"z"]
 	guessed: []
+	life: 5
 
 	init: reduce [ random/seed now ]
-
-	hideword: func [] [ 
-	
-	]
 
 	startup: layout/offset [ 
 					origin 0x0
@@ -32,27 +30,29 @@ hangman: context [
 					backcolor green
 	] 0x0
 
+
+	
 	gamerunning: layout/offset [ 
 				origin 0x0
 				space 0x0
 				size main-size
 				image %Hangman-data/stick0.bmp effect [ aspect ]
-				text hiddenword bold red
+				word-pane: box 506x65 red
 				return			
-				btn-pane: box 134x200 coal
-				text "Already guessed:" 
-				used-pane: box 134x200 coal
+				btn-pane: box 134x480 coal
 				backcolor blue
 	] 0x0 
 
 	gameover: layout/offset [ 
 				size main-size
+				image %Hangman-data/lose.png
 				backcolor red	
 	] 0x0
  
 	gamesuccess: layout/offset [ 
 				size main-size
-				backcolor purple
+				image %Hangman-data/win.png
+				backcolor green
 	] 0x0
 	
 	main: layout [ 
@@ -60,102 +60,95 @@ hangman: context [
 				title "Hangman"
 				backcolor black
 	]
-	
-	
 	main/pane: [ startup ]
 
-	draw-text: func [ text ] []
+
 	
-	start-btn/action: [ main/pane: [ gamerunning ] remake-buttons show main ]	   
+	start-btn/action: [ main/pane: [ gamerunning ] draw-text hiddenword remake-buttons show main ]	   
 
 	loselife: func [] [
-
+		life: life - 1
 	]	
 	
-	guess: func [ letter ] [ print "guess"
-		found: 0
-		alert rejoin [ "char: " letter " wordlength: " length? hangword ]
+	draw-text: func [ strword ] [
+		;compute this with max size of possible word
+		letter-width: 32
+		word-width: letter-width * length? hangword
+		wordlay: copy [
+			origin to-pair rejoin [ (reduce (word-pane/size/1 - word-width) / 2 ) "x" "0" ]
+			space 0x0
+			size word-pane/size
+			across
+		]
+		image-height: word-pane/size/2
+		image-size: to-pair rejoin [letter-width "x" image-height]
+		foreach letter strword [
+			repend wordlay [ 'image image-size rejoin [ %Hangman-data/ letter ".png" ] 'effect [ fit ] ]
+		]
+		word-pane/pane: layout/offset wordlay 0x0
+		show word-pane
+	]
+	
+	guess: func [ letter ] [
+		found: false
 		repeat pos length? hangword [
-		probe letter
-		;probe pick hangword pos
 			if letter = pick hangword pos 
 			[
-				alert "found" 
-				found: 1
-				probe poke hiddenword pos letter
+				found: true
+				poke hiddenword pos letter
 			]
 		]
-		probe append guessed letter
-		probe remove find unguessed letter
+		append guessed letter
+		remove find unguessed letter
+		draw-text hiddenword
 		remake-buttons
+		show gamerunning
 		if not found [ loselife ]
-		show gamerunning						
+		
+		if/else life = 0 [
+			main/pane: [ gameover ] show main
+		][
+			if not find hiddenword "_"
+			[
+				main/pane: [ gamesuccess ] show main
+			]
+		]
 	] 	
 	
 	remake-buttons: does [
-		print "remake-buttons"
 		buttons: copy [
 			origin 0x0 
 			space 2x2
 			backcolor white
 			across 
-			style btn button 32x32 [ guess to-char face/text ]
+			style btn button 44x38 ;[ guess to-char face/text ]
+			style btnoff button 44x38
 		]
-		buttonsoff: copy [
-			origin 0x0 
-			space 2x2
-			backcolor white
-			across 
-			style btn button 32x32
-		]
+		append buttons [ return image 134x40 %Hangman-data/pick.png return ]
 		cnt: 0
 		foreach c unguessed [
-			repend buttons [ 'btn to-string c ]
+			repend buttons [ 'btn rejoin [ %Hangman-data/ c ".png" ] reduce [ 'guess c ] ]
 			cnt: cnt + 1
-			if cnt = 4 [ 
+			if cnt = 3 [ 
 				cnt: 0
 				repend buttons [ 'return ]
-				probe buttons
 			]
 		]
+		append buttons [ return image 134x40 %Hangman-data/guessed.png return ]
 		cnt: 0
 		foreach c guessed [
-			repend buttonsoff [ 'btn to-string c ]
+			repend buttons [ 'btnoff rejoin [ %Hangman-data/ c ".png" ]]
 			cnt: cnt + 1
-			if cnt = 4 [ 
+			if cnt = 3 [ 
 				cnt: 0
-				repend buttonsoff [ 'return ]
-				probe buttonsoff
+				repend buttons [ 'return ]
 			]
 		]
 		btn-pane/pane: layout/offset buttons 0x0
-		used-pane/pane: layout/offset buttonsoff 0x0
 		show btn-pane
-		show used-pane
 	]
-	
-
-
 
 	
-	;btn-pane/pane: layout/offset [
-;		origin 0x0
-;		space 0x0
-;		across
-;		(buttons: copy [ space 0 style btn button 32x32 ]
-;		;cnt: 0
-;		btn-pane/pane: []
-;		foreach c unguessed [
-;			;cnt: cnt + 1
-;			repend buttons [ 'btn c ]
-;			;if cnt = 3 [ return cnt: 0 ]
-;		]
-;		view/new layout/origin buttons 0x0
-;		backcolor red		
-;	] 0x0
-	
-
-
 ]
 
 insert-event-func func [face event] bind [
