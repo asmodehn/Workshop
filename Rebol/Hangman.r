@@ -12,7 +12,7 @@ hangman: context [
 	main-size: 640x480
 	hangword: "hangman"
 	hiddenword: "________"
-	unguessed: [ #"a" - #"z"]
+	unguessed: [ #"a" #"b" #"c" #"d" #"e" #"f" #"g" #"h" #"i" #"j" #"z"]
 	guessed: []
 
 	init: reduce [ random/seed now ]
@@ -21,7 +21,7 @@ hangman: context [
 	
 	]
 
-	startup: layout/offset [
+	startup: layout/offset [ 
 					origin 0x0
 					space 0x0
 					size main-size
@@ -32,7 +32,7 @@ hangman: context [
 					backcolor green
 	] 0x0
 
-	gamerunning: layout/offset [  
+	gamerunning: layout/offset [ 
 				origin 0x0
 				space 0x0
 				size main-size
@@ -43,10 +43,9 @@ hangman: context [
 				text "Already guessed:" 
 				used-pane: box 134x200 coal
 				backcolor blue
+	] 0x0 
 
-	] 0x0
-
-	gameover: layout/offset [
+	gameover: layout/offset [ 
 				size main-size
 				backcolor red	
 	] 0x0
@@ -56,57 +55,105 @@ hangman: context [
 				backcolor purple
 	] 0x0
 	
-	main: layout [
+	main: layout [ 
 				size main-size 
 				title "Hangman"
 				backcolor black
 	]
 	
-	;start-btn: layout [ 
-	;				button %Hangman-data/Start.png backcolor white
-					;[ alert "click" ] 
-					;[ main/pane: [ gamerunning ] show gamerunning ]
-					
-	;]
-	;append startup/pane start-btn
-	start-btn/action: [ main/pane: [ gamerunning ] show main ]	   
-
+	
 	main/pane: [ startup ]
 
-
 	draw-text: func [ text ] []
-
-	guess: func [ letter ] [
-		alert rejoin [ "char:" letter " wordlength: " length? hangword ]
-
-		repeat pos length? hangword [
-        if/else letter = pick hangword pos 
-		[
-			alert "found" 
-			poke hiddenword pos letter
-		]
-		[ 
-			alert "notfound"
-			 loselife
-		]
-		append guessed letter
-		remove unguessed letter
-      ]
-		
-		show gamerunning						
-	] 	
 	
+	start-btn/action: [ main/pane: [ gamerunning ] remake-buttons show main ]	   
+
 	loselife: func [] [
 
 	]	
+	
+	guess: func [ letter ] [ print "guess"
+		found: 0
+		alert rejoin [ "char: " letter " wordlength: " length? hangword ]
+		repeat pos length? hangword [
+		probe letter
+		;probe pick hangword pos
+			if letter = pick hangword pos 
+			[
+				alert "found" 
+				found: 1
+				probe poke hiddenword pos letter
+			]
+		]
+		probe append guessed letter
+		probe remove find unguessed letter
+		remake-buttons
+		if not found [ loselife ]
+		show gamerunning						
+	] 	
+	
+	remake-buttons: does [
+		print "remake-buttons"
+		buttons: copy [
+			origin 0x0 
+			space 2x2
+			backcolor white
+			across 
+			style btn button 32x32 [ guess to-char face/text ]
+		]
+		buttonsoff: copy [
+			origin 0x0 
+			space 2x2
+			backcolor white
+			across 
+			style btn button 32x32
+		]
+		cnt: 0
+		foreach c unguessed [
+			repend buttons [ 'btn to-string c ]
+			cnt: cnt + 1
+			if cnt = 4 [ 
+				cnt: 0
+				repend buttons [ 'return ]
+				probe buttons
+			]
+		]
+		cnt: 0
+		foreach c guessed [
+			repend buttonsoff [ 'btn to-string c ]
+			cnt: cnt + 1
+			if cnt = 4 [ 
+				cnt: 0
+				repend buttonsoff [ 'return ]
+				probe buttonsoff
+			]
+		]
+		btn-pane/pane: layout/offset buttons 0x0
+		used-pane/pane: layout/offset buttonsoff 0x0
+		show btn-pane
+		show used-pane
+	]
+	
 
-	btn-pane/pane: layout/offset [
-		origin 0x0
-		space 0x0
-		style btn button 32x32
-		btn "a" [ guess #"a" ]
-		backcolor red		
-	] 0x0	
+
+
+	
+	;btn-pane/pane: layout/offset [
+;		origin 0x0
+;		space 0x0
+;		across
+;		(buttons: copy [ space 0 style btn button 32x32 ]
+;		;cnt: 0
+;		btn-pane/pane: []
+;		foreach c unguessed [
+;			;cnt: cnt + 1
+;			repend buttons [ 'btn c ]
+;			;if cnt = 3 [ return cnt: 0 ]
+;		]
+;		view/new layout/origin buttons 0x0
+;		backcolor red		
+;	] 0x0
+	
 
 
 ]
