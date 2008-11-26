@@ -36,7 +36,21 @@ hangman: context [
 				origin 0x0
 				space 0x0
 				size main-size
-				image %Hangman-data/stick0.bmp effect [ aspect ]
+				anim 506x415 rate 10 frames [ 
+					%Hangman-data/walking/walking00.png
+					%Hangman-data/walking/walking01.png
+					%Hangman-data/walking/walking02.png
+					%Hangman-data/walking/walking03.png
+					%Hangman-data/walking/walking04.png
+					%Hangman-data/walking/walking05.png
+					%Hangman-data/walking/walking06.png
+					%Hangman-data/walking/walking07.png
+					%Hangman-data/walking/walking08.png
+					%Hangman-data/walking/walking09.png
+					%Hangman-data/walking/walking10.png
+					%Hangman-data/walking/walking11.png
+					%Hangman-data/walking/walking12.png
+				] effect [ aspect ]
 				word-pane: box 506x65 red
 				return			
 				btn-pane: box 134x480 coal
