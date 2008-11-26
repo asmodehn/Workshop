@@ -9,7 +9,7 @@ REBOL [
 hangman: context [
 	sprite-size: 20x20
 	;TODO :  font loading
-	main-size: 640x480
+	main-size: 800x600
 	hangword: "hangman"
 	hiddenword: "_______"
 	unguessed: [ #"a" #"b" #"c" #"d" #"e" #"f" #"g" #"h" #"i" #"j" #"k" #"l"
@@ -23,8 +23,8 @@ hangman: context [
 					origin 0x0
 					space 0x0
 					size main-size
-					image %Hangman-data/stick0.bmp effect [ aspect ] 
-					image 506x65 %Hangman-data/title.png effect [ fit ]
+					image 666X535 %Hangman-data/stick0.bmp effect [ fit ] 
+					image 666x65 %Hangman-data/title.png effect [ fit ]
 					return
 					start-btn: button 134x50 %Hangman-data/Start.png backcolor white 
 					backcolor green
@@ -36,7 +36,7 @@ hangman: context [
 				origin 0x0
 				space 0x0
 				size main-size
-				anim 506x415 rate 10 frames [ 
+				anim 666x535 rate 10 frames [ 
 					%Hangman-data/walking/walking00.png
 					%Hangman-data/walking/walking01.png
 					%Hangman-data/walking/walking02.png
@@ -50,10 +50,10 @@ hangman: context [
 					%Hangman-data/walking/walking10.png
 					%Hangman-data/walking/walking11.png
 					%Hangman-data/walking/walking12.png
-				] effect [ aspect ]
-				word-pane: box 506x65 red
+				] effect [ fit ]
+				word-pane: box 666x65 red
 				return			
-				btn-pane: box 134x480 coal
+				btn-pane: box 134x535 coal
 				backcolor blue
 	] 0x0 
 
@@ -132,7 +132,7 @@ hangman: context [
 	remake-buttons: does [
 		buttons: copy [
 			origin 0x0 
-			space 2x2
+			space 1x1
 			backcolor white
 			across 
 			style btn button 44x38 ;[ guess to-char face/text ]
