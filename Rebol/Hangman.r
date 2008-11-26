@@ -57,13 +57,17 @@ hangman: context [
 				backcolor blue
 	] 0x0 
 
-	gameover: layout/offset [ 
+	gameover: layout/offset [
+				origin 0x0
+				space 0x0 
 				size main-size
 				image %Hangman-data/lose.png
 				backcolor red	
 	] 0x0
  
 	gamesuccess: layout/offset [ 
+				origin 0x0
+				space 0x0
 				size main-size
 				image %Hangman-data/win.png
 				backcolor green
