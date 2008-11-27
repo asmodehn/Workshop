@@ -10,21 +10,27 @@ hangman: context [
 	;TODO :  font/image loading
 	main-size: 800x600
 	wordlist: [ "croissant" "baguette" ]	
-	sound-port: open sound://
-	max-life: 5 
+	sound-port: open sound:// 
+	max-life: 5
 
 	init: does [
-		print "!!! init !!!"
+		;print "!!! init !!!"
 		random/seed now 
-		hangword: copy probe pick wordlist (random length? wordlist)
+		hangword: copy pick wordlist (random length? wordlist)
 		hiddenword: copy "" loop (length? hangword) [ append hiddenword "_" ]
-		probe hiddenword
+		;probe hiddenword
 		unguessed: copy [ #"a" #"b" #"c" #"d" #"e" #"f" #"g" #"h" #"i" #"j" #"k" #"l"
 					 #"m" #"n" #"o" #"p" #"q" #"r" #"s" #"t" #"u" #"v" #"w" #"x" #"y" #"z"]
 		guessed: copy []
-		life: copy max-life
-		
-		probe life
+		life: max-life
+		;probe life
+	]
+
+	restart: does [
+					main/pane: [ startup ] 
+				    clear sound-port
+					play-sound %Hangman-data/Mortalk1.wav
+					view center-face hangman/main
 	]
 
 	startup: layout/offset [ 
@@ -37,41 +43,42 @@ hangman: context [
 					start-btn: button 134x50 %Hangman-data/Start.png backcolor white 
 					backcolor green
 	] 0x0
+
+	animidle: copy []
+	file-list: read %./Hangman-data/idle/
+	foreach file file-list [
+		if find to-string file "idle" [
+			append animidle rejoin [ %./Hangman-data/idle/ file ]
+		]
+	]
 	
 	gamerunning: layout/offset [ 
 				origin 0x0
 				space 0x0
 				size main-size
-				anim 666x535 rate 10 frames [ 
-					%Hangman-data/walking/walking00.png
-					%Hangman-data/walking/walking01.png
-					%Hangman-data/walking/walking02.png
-					%Hangman-data/walking/walking03.png
-					%Hangman-data/walking/walking04.png
-					%Hangman-data/walking/walking05.png
-					%Hangman-data/walking/walking06.png
-					%Hangman-data/walking/walking07.png
-					%Hangman-data/walking/walking08.png
-					%Hangman-data/walking/walking09.png
-					%Hangman-data/walking/walking10.png
-					%Hangman-data/walking/walking11.png
-					%Hangman-data/walking/walking12.png
-				] effect [ fit ]
-				word-pane: box 666x65 red
+				anim 666x535 rate 24 frames animidle effect [ fit ]
+				at 8x525
+				life-bar: box 650x60 white
+				at 0x535
+				word-pane: box 666x65 white
 				return			
-				btn-pane: box 134x535 coal
+				btn-pane: box 134x600 white
 				backcolor blue
-	] 0x0 
+	] 0x0
+ 
+
+	draw-life-bar: does [ 
+		life-box: reduce [ 'origin 0x0 'space 0x0 'box to-pair rejoin [( 650 * life / max-life ) "x10" ] 'black ] 
+		life-bar/pane: layout/offset life-box 0x0
+		show life-bar
+	] 
 
 	gameover: layout/offset [
 				origin 0x0
 				space 0x0 
 				size main-size
 				image %Hangman-data/lose.png [
-					main/pane: [ startup ] 
-					clear sound-port
-					play-sound %Hangman-data/Mortalk1.wav					
-				    view center-face hangman/main
+					restart
 				]
 				backcolor red	
 	] 0x0
@@ -81,10 +88,7 @@ hangman: context [
 				space 0x0
 				size main-size
 				image %Hangman-data/win.png [
-					main/pane: [ startup ] 
-				    clear sound-port
-					play-sound %Hangman-data/Mortalk1.wav
-					view center-face hangman/main
+					restart
 				] 
 				backcolor green
 	] 0x0
@@ -101,11 +105,14 @@ hangman: context [
 		main/pane: [ gamerunning ]
 		draw-text hiddenword
 		remake-buttons
+		draw-life-bar
 		show main
 	]	   
 
 	lose-life: func [] [
 		life: life - 1
+		draw-life-bar
+		show gamerunning
 	]	
 
 	play-sound: func [ wavfile ] [
@@ -124,7 +131,7 @@ hangman: context [
 	
 	draw-text: func [ strword ] [
 		;compute this with max size of possible word
-		letter-width: 32
+		letter-width: 44
 		word-width: letter-width * length? hangword
 		wordlay: copy [
 			origin to-pair rejoin [ (reduce (word-pane/size/1 - word-width) / 2 ) "x" "0" ]
@@ -137,6 +144,7 @@ hangman: context [
 		foreach letter strword [
 			repend wordlay [ 'image image-size rejoin [ %Hangman-data/ letter ".png" ] 'effect [ fit ] ]
 		]
+		append wordlay [ backcolor white ]
 		word-pane/pane: layout/offset wordlay 0x0
 		show word-pane
 	]
@@ -203,6 +211,7 @@ hangman: context [
 		btn-pane/pane: layout/offset buttons 0x0
 		show btn-pane
 	]
+
 
 	
 ]
