@@ -1,23 +1,31 @@
 REBOL [
 	title: "Hangman"
 	author: "Asmodehn"
-	version: 0.1.1
-	date: 15-Nov-2008
+	version: 0.2.0
+	date: 26-Nov-2008
 	copyright: "Freeware"
 ]
 
 hangman: context [
-	sprite-size: 20x20
-	;TODO :  font loading
+	;TODO :  font/image loading
 	main-size: 800x600
-	hangword: "hangman"
-	hiddenword: "_______"
-	unguessed: [ #"a" #"b" #"c" #"d" #"e" #"f" #"g" #"h" #"i" #"j" #"k" #"l"
-				 #"m" #"n" #"o" #"p" #"q" #"r" #"s" #"t" #"u" #"v" #"w" #"x" #"y" #"z"]
-	guessed: []
-	life: 5
+	wordlist: [ "croissant" "baguette" ]
+	;hangword: "hangman"
+	;hiddenword: "_______"
+	
 
-	init: reduce [ random/seed now ]
+	init: does [
+		print "!!! init !!!"
+		random/seed now 
+		hangword: copy probe pick wordlist (random length? wordlist)
+		hiddenword: copy "" loop (length? hangword) [ append hiddenword "_" ]
+		probe hiddenword
+		unguessed: copy [ #"a" #"b" #"c" #"d" #"e" #"f" #"g" #"h" #"i" #"j" #"k" #"l"
+					 #"m" #"n" #"o" #"p" #"q" #"r" #"s" #"t" #"u" #"v" #"w" #"x" #"y" #"z"]
+		guessed: copy []
+		life: 5 
+		probe life
+	]
 
 	startup: layout/offset [ 
 					origin 0x0
@@ -29,38 +37,25 @@ hangman: context [
 					start-btn: button 134x50 %Hangman-data/Start.png backcolor white 
 					backcolor green
 	] 0x0
-
-
 	
 	gamerunning: layout/offset [ 
 				origin 0x0
 				space 0x0
 				size main-size
-				anim 666x535 rate 20 frames [ 
-					%Hangman-data/walking/bens_walking/walkcycle0001.png
-					%Hangman-data/walking/bens_walking/walkcycle0002.png
-					%Hangman-data/walking/bens_walking/walkcycle0003.png
-					%Hangman-data/walking/bens_walking/walkcycle0004.png
-					%Hangman-data/walking/bens_walking/walkcycle0005.png
-					%Hangman-data/walking/bens_walking/walkcycle0006.png
-					%Hangman-data/walking/bens_walking/walkcycle0007.png
-					%Hangman-data/walking/bens_walking/walkcycle0008.png
-					%Hangman-data/walking/bens_walking/walkcycle0009.png
-					%Hangman-data/walking/bens_walking/walkcycle0010.png
-					%Hangman-data/walking/bens_walking/walkcycle0011.png
-					%Hangman-data/walking/bens_walking/walkcycle0012.png
-					%Hangman-data/walking/bens_walking/walkcycle0013.png
-					%Hangman-data/walking/bens_walking/walkcycle0014.png
-					%Hangman-data/walking/bens_walking/walkcycle0015.png
-					%Hangman-data/walking/bens_walking/walkcycle0016.png
-					%Hangman-data/walking/bens_walking/walkcycle0017.png
-					%Hangman-data/walking/bens_walking/walkcycle0018.png
-					%Hangman-data/walking/bens_walking/walkcycle0019.png
-					%Hangman-data/walking/bens_walking/walkcycle0020.png
-					%Hangman-data/walking/bens_walking/walkcycle0021.png
-					%Hangman-data/walking/bens_walking/walkcycle0022.png
-					
-					
+				anim 666x535 rate 10 frames [ 
+					%Hangman-data/walking/walking00.png
+					%Hangman-data/walking/walking01.png
+					%Hangman-data/walking/walking02.png
+					%Hangman-data/walking/walking03.png
+					%Hangman-data/walking/walking04.png
+					%Hangman-data/walking/walking05.png
+					%Hangman-data/walking/walking06.png
+					%Hangman-data/walking/walking07.png
+					%Hangman-data/walking/walking08.png
+					%Hangman-data/walking/walking09.png
+					%Hangman-data/walking/walking10.png
+					%Hangman-data/walking/walking11.png
+					%Hangman-data/walking/walking12.png
 				] effect [ fit ]
 				word-pane: box 666x65 red
 				return			
@@ -72,7 +67,7 @@ hangman: context [
 				origin 0x0
 				space 0x0 
 				size main-size
-				image %Hangman-data/lose.png
+				image %Hangman-data/lose.png [ init main/pane: [ gamerunning ] draw-text hiddenword remake-buttons show main ]
 				backcolor red	
 	] 0x0
  
@@ -80,7 +75,7 @@ hangman: context [
 				origin 0x0
 				space 0x0
 				size main-size
-				image %Hangman-data/win.png
+				image %Hangman-data/win.png [ init main/pane: [ gamerunning ] draw-text hiddenword remake-buttons show main ] 
 				backcolor green
 	] 0x0
 	
@@ -90,10 +85,8 @@ hangman: context [
 				backcolor black
 	]
 	main/pane: [ startup ]
-
-
 	
-	start-btn/action: [ main/pane: [ gamerunning ] draw-text hiddenword remake-buttons show main ]	   
+	start-btn/action: [ init main/pane: [ gamerunning ] draw-text hiddenword remake-buttons show main ]	   
 
 	loselife: func [] [
 		life: life - 1
@@ -196,6 +189,5 @@ insert-event-func func [face event] bind [
 ] in hangman 'self
 
 if any [not system/script/args empty? form system/script/args] [
-	hangman/init
     view center-face hangman/main
 ]
