@@ -9,10 +9,9 @@ REBOL [
 hangman: context [
 	;TODO :  font/image loading
 	main-size: 800x600
-	wordlist: [ "croissant" "baguette" ]
-	;hangword: "hangman"
-	;hiddenword: "_______"
-	
+	wordlist: [ "croissant" "baguette" ]	
+	sound-port: open sound://
+	max-life: 5 
 
 	init: does [
 		print "!!! init !!!"
@@ -23,7 +22,8 @@ hangman: context [
 		unguessed: copy [ #"a" #"b" #"c" #"d" #"e" #"f" #"g" #"h" #"i" #"j" #"k" #"l"
 					 #"m" #"n" #"o" #"p" #"q" #"r" #"s" #"t" #"u" #"v" #"w" #"x" #"y" #"z"]
 		guessed: copy []
-		life: 5 
+		life: copy max-life
+		
 		probe life
 	]
 
@@ -67,7 +67,12 @@ hangman: context [
 				origin 0x0
 				space 0x0 
 				size main-size
-				image %Hangman-data/lose.png [ init main/pane: [ gamerunning ] draw-text hiddenword remake-buttons show main ]
+				image %Hangman-data/lose.png [
+					main/pane: [ startup ] 
+					clear sound-port
+					play-sound %Hangman-data/Mortalk1.wav					
+				    view center-face hangman/main
+				]
 				backcolor red	
 	] 0x0
  
@@ -75,7 +80,12 @@ hangman: context [
 				origin 0x0
 				space 0x0
 				size main-size
-				image %Hangman-data/win.png [ init main/pane: [ gamerunning ] draw-text hiddenword remake-buttons show main ] 
+				image %Hangman-data/win.png [
+					main/pane: [ startup ] 
+				    clear sound-port
+					play-sound %Hangman-data/Mortalk1.wav
+					view center-face hangman/main
+				] 
 				backcolor green
 	] 0x0
 	
@@ -86,11 +96,31 @@ hangman: context [
 	]
 	main/pane: [ startup ]
 	
-	start-btn/action: [ init main/pane: [ gamerunning ] draw-text hiddenword remake-buttons show main ]	   
+	start-btn/action: [ 
+		init
+		main/pane: [ gamerunning ]
+		draw-text hiddenword
+		remake-buttons
+		show main
+	]	   
 
-	loselife: func [] [
+	lose-life: func [] [
 		life: life - 1
 	]	
+
+	play-sound: func [ wavfile ] [
+	    if error? err: try [
+    	    wav: load wavfile
+			clear sound-port        	
+			insert sound-port wav
+	        ;wait sound-port
+	        
+	        true
+	    ][
+	        print ["ERROR:" mold disarm err]
+	        ask "Press return to continue"
+	    ]
+	]
 	
 	draw-text: func [ strword ] [
 		;compute this with max size of possible word
@@ -125,14 +155,18 @@ hangman: context [
 		draw-text hiddenword
 		remake-buttons
 		show gamerunning
-		if not found [ loselife ]
+		if not found [ lose-life ]
 		
 		if/else life = 0 [
-			main/pane: [ gameover ] show main
+			main/pane: [ gameover ]
+			play-sound %Hangman-data/epic_fail.wav
+			show main
 		][
 			if not find hiddenword "_"
 			[
-				main/pane: [ gamesuccess ] show main
+				main/pane: [ gamesuccess ]
+				play-sound %Hangman-data/flawless_victory.wav
+				show main
 			]
 		]
 	] 	
@@ -189,5 +223,7 @@ insert-event-func func [face event] bind [
 ] in hangman 'self
 
 if any [not system/script/args empty? form system/script/args] [
-    view center-face hangman/main
+	    clear hangman/sound-port
+		hangman/play-sound %Hangman-data/Mortalk1.wav
+		view center-face hangman/main
 ]
