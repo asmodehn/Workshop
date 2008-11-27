@@ -36,20 +36,31 @@ hangman: context [
 				origin 0x0
 				space 0x0
 				size main-size
-				anim 666x535 rate 10 frames [ 
-					%Hangman-data/walking/walking00.png
-					%Hangman-data/walking/walking01.png
-					%Hangman-data/walking/walking02.png
-					%Hangman-data/walking/walking03.png
-					%Hangman-data/walking/walking04.png
-					%Hangman-data/walking/walking05.png
-					%Hangman-data/walking/walking06.png
-					%Hangman-data/walking/walking07.png
-					%Hangman-data/walking/walking08.png
-					%Hangman-data/walking/walking09.png
-					%Hangman-data/walking/walking10.png
-					%Hangman-data/walking/walking11.png
-					%Hangman-data/walking/walking12.png
+				anim 666x535 rate 20 frames [ 
+					%Hangman-data/walking/bens_walking/walkcycle0001.png
+					%Hangman-data/walking/bens_walking/walkcycle0002.png
+					%Hangman-data/walking/bens_walking/walkcycle0003.png
+					%Hangman-data/walking/bens_walking/walkcycle0004.png
+					%Hangman-data/walking/bens_walking/walkcycle0005.png
+					%Hangman-data/walking/bens_walking/walkcycle0006.png
+					%Hangman-data/walking/bens_walking/walkcycle0007.png
+					%Hangman-data/walking/bens_walking/walkcycle0008.png
+					%Hangman-data/walking/bens_walking/walkcycle0009.png
+					%Hangman-data/walking/bens_walking/walkcycle0010.png
+					%Hangman-data/walking/bens_walking/walkcycle0011.png
+					%Hangman-data/walking/bens_walking/walkcycle0012.png
+					%Hangman-data/walking/bens_walking/walkcycle0013.png
+					%Hangman-data/walking/bens_walking/walkcycle0014.png
+					%Hangman-data/walking/bens_walking/walkcycle0015.png
+					%Hangman-data/walking/bens_walking/walkcycle0016.png
+					%Hangman-data/walking/bens_walking/walkcycle0017.png
+					%Hangman-data/walking/bens_walking/walkcycle0018.png
+					%Hangman-data/walking/bens_walking/walkcycle0019.png
+					%Hangman-data/walking/bens_walking/walkcycle0020.png
+					%Hangman-data/walking/bens_walking/walkcycle0021.png
+					%Hangman-data/walking/bens_walking/walkcycle0022.png
+					
+					
 				] effect [ fit ]
 				word-pane: box 666x65 red
 				return			
