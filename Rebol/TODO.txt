@@ -1,0 +1,3 @@
+ - need to print loading file onteh startup screen
+ - keyboard input
+ - gui sound ...

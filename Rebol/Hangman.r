@@ -11,7 +11,7 @@ hangman: context [
 	main-size: 800x600
 	wordlist: [ "croissant" "baguette" ]	
 	sound-port: open sound:// 
-	max-life: 5
+	max-life: 9
 
 	init: does [
 		;print "!!! init !!!"
@@ -185,8 +185,8 @@ hangman: context [
 			space 1x1
 			backcolor white
 			across 
-			style btn button 44x38 ;[ guess to-char face/text ]
-			style btnoff button 44x38
+			style btn button 44x38 
+			style btnoff image 44x38 effect [ fit invert ] 
 		]
 		append buttons [ return image 134x40 %Hangman-data/pick.png return ]
 		cnt: 0
@@ -198,7 +198,7 @@ hangman: context [
 				repend buttons [ 'return ]
 			]
 		]
-		append buttons [ return image 134x40 %Hangman-data/guessed.png return ]
+		append buttons [ return at 0x443 image 134x40 %Hangman-data/guessed.png return ]
 		cnt: 0
 		foreach c guessed [
 			repend buttons [ 'btnoff rejoin [ %Hangman-data/ c ".png" ]]
