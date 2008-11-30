@@ -116,26 +116,26 @@ hangman: context [
 	
 	play-anim-car: does [
 		hide btn-pane
-		anim-time: ( length? animcar ) / 24 
+		anim-car-time: ( length? animcar ) / 24 
 		anim-pane/pane: layout/offset [
 							origin 0x0
 							anim 666x535 rate 24 frames animcar	effect [ fit ]
 						] 0x0
 		show anim-pane
-		wait anim-time
+		wait anim-car-time
 		show btn-pane
 		play-anim-idle 
 	]
 
 	play-anim-grenade: does [
 		hide btn-pane
-		anim-time: ( length? animgrenade ) / 24 
+		anim-grenade-time: ( length? animgrenade ) / 24 
 		anim-pane/pane: layout/offset [
 							origin 0x0
 							anim 666x535 rate 24 frames animgrenade	effect [ fit ]
 						] 0x0
 		show anim-pane
-		wait anim-time
+		wait anim-grenade-time
 		show btn-pane
 		play-anim-idle 
 	]
