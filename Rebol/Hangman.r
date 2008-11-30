@@ -153,8 +153,8 @@ hangman: context [
 				anim 800x600 rate 24 frames animloser
 				at 90x0
 				image 620x167 %Hangman-data/lose.png
-				at 400x300
-				button 100x50 %Hangman-data/lose.png [
+				at 251x300
+				button 298x88 %Hangman-data/TryAgain.png [
 					restart
 				]
 				backcolor red	
@@ -167,8 +167,8 @@ hangman: context [
 				anim 800x600 rate 24 frames animwinner
 				at 124x0
 				image 552x167 %Hangman-data/win.png
-				at 400x300
-				button 100x50 %Hangman-data/win.png [
+				at 251x300
+				button 298x88 %Hangman-data/TryAgain.png [
 					restart
 				] 
 				backcolor green
