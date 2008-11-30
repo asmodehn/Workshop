@@ -8,11 +8,14 @@ REBOL [
 
 hangman: context [
 	;TODO :  font/image loading
+	
+	do %Hangman-data.r
+	
 	main-size: 800x600
 	wordlist: [ "croissant" "baguette" ]	
 	sound-port: open sound:// 
-	max-life: 9
-
+	max-life: 5
+	
 	init: does [
 		;print "!!! init !!!"
 		random/seed now 
@@ -44,7 +47,7 @@ hangman: context [
 					backcolor green
 	] 0x0
 
-	animidle: copy []
+	animidle: []
 	file-list: read %./Hangman-data/idle/
 	foreach file file-list [
 		if find to-string file "idle" [
@@ -52,11 +55,20 @@ hangman: context [
 		]
 	]
 	
+	animcar: []
+	file-list: read %./Hangman-data/car/
+	foreach file file-list [
+		if find to-string file "car" [
+			append animcar rejoin [ %./Hangman-data/car/ file ]
+		]
+	]
+	
 	gamerunning: layout/offset [ 
 				origin 0x0
 				space 0x0
 				size main-size
-				anim 666x535 rate 24 frames animidle effect [ fit ]
+				anim-pane: box 666x535 red
+				
 				at 8x525
 				life-bar: box 650x60 white
 				at 0x535
@@ -65,7 +77,25 @@ hangman: context [
 				btn-pane: box 134x600 white
 				backcolor blue
 	] 0x0
- 
+	
+	play-anim-idle: does [
+		anim-pane/pane: layout/offset [ 
+							origin 0x0
+							anim 666x535 rate 24 frames animidle effect [ fit ]
+						] 0x0
+		show anim-pane
+	]
+	
+	play-anim-car: does [
+		anim-time: ( length? animcar ) / 24 
+		anim-pane/pane: layout/offset [
+							origin 0x0
+							anim 666x535 rate 24 frames animcar	effect [ fit ]
+						] 0x0
+		show anim-pane
+		wait anim-time
+		play-anim-idle 
+	]
 
 	draw-life-bar: does [ 
 		life-box: reduce [ 'origin 0x0 'space 0x0 'box to-pair rejoin [( 650 * life / max-life ) "x10" ] 'black ] 
@@ -106,6 +136,7 @@ hangman: context [
 		draw-text hiddenword
 		remake-buttons
 		draw-life-bar
+		play-anim-idle
 		show main
 	]	   
 
@@ -142,7 +173,7 @@ hangman: context [
 		image-height: word-pane/size/2
 		image-size: to-pair rejoin [letter-width "x" image-height]
 		foreach letter strword [
-			repend wordlay [ 'image image-size rejoin [ %Hangman-data/ letter ".png" ] 'effect [ fit ] ]
+			repend wordlay [ 'image image-size get to-word rejoin [ letter "_png" ] 'effect [ fit ] ]
 		]
 		append wordlay [ backcolor white ]
 		word-pane/pane: layout/offset wordlay 0x0
@@ -163,7 +194,10 @@ hangman: context [
 		draw-text hiddenword
 		remake-buttons
 		show gamerunning
-		if not found [ lose-life ]
+		if not found [
+			lose-life
+			play-anim-car
+		]
 		
 		if/else life = 0 [
 			main/pane: [ gameover ]
@@ -184,25 +218,35 @@ hangman: context [
 			origin 0x0 
 			space 1x1
 			backcolor white
-			across 
+			below
 			style btn button 44x38 
 			style btnoff image 44x38 effect [ fit invert ] 
 		]
-		append buttons [ return image 134x40 %Hangman-data/pick.png return ]
+		append buttons [ image 134x40 %Hangman-data/pick.png return across ]
 		cnt: 0
+		btn_num: 0
 		foreach c unguessed [
-			repend buttons [ 'btn rejoin [ %Hangman-data/ c ".png" ] reduce [ 'guess c ] ]
+			repend buttons [ 'btn get to-word rejoin [ c "_png" ] reduce [ 'guess c ] ]
 			cnt: cnt + 1
+			btn_num: btn_num + 1
 			if cnt = 3 [ 
 				cnt: 0
 				repend buttons [ 'return ]
 			]
 		]
-		append buttons [ return at 0x443 image 134x40 %Hangman-data/guessed.png return ]
+		pad-size: 169
+		; that is : total size minus ( pick size + guessed size ) minus ( (buttonsize + space ) * num_letters )
+		if ( (remainder (length? guessed) 3) <> 0 ) and ( ( remainder ( length? unguessed ) 3) <> 0 ) [
+			pad-size: pad-size - 39
+		]
+		repend buttons [ 'return 'below 'pad pad-size ]
+		append buttons [ image 134x40 %Hangman-data/guessed.png return across ]
 		cnt: 0
+		btn_num: 0
 		foreach c guessed [
-			repend buttons [ 'btnoff rejoin [ %Hangman-data/ c ".png" ]]
+			repend buttons [ 'btnoff get to-word rejoin [ c "_png" ] ]
 			cnt: cnt + 1
+			btn_num: btn_num + 1
 			if cnt = 3 [ 
 				cnt: 0
 				repend buttons [ 'return ]
