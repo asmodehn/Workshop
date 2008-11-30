@@ -128,7 +128,6 @@ hangman: context [
 		show anim-pane
 		wait anim-car-time
 		show btn-pane
-		play-anim-idle 
 	]
 
 	play-anim-grenade: func [ timeout ] [
@@ -146,7 +145,6 @@ hangman: context [
 		show anim-pane
 		wait anim-grenade-time
 		show btn-pane
-		play-anim-idle 
 	]
 	
 	draw-life-bar: does [ 
@@ -256,12 +254,13 @@ hangman: context [
 		if not found [
 			lose-life
 			if/else life = 0 [
-				do first random [ "hangman/play-anim-car 3 " "hangman/play-anim-grenade 3 " ]
+				do first random [ "hangman/play-anim-car 2.5 " "hangman/play-anim-grenade 2.5 " ]
 				main/pane: [ gameover ]
 				play-sound %Hangman-data/epic_fail.wav
 				show main
 			][
 				do first random [ "hangman/play-anim-car -1" "hangman/play-anim-grenade -1" ]
+				play-anim-idle 
 				if not find hiddenword "_"
 				[
 					main/pane: [ gamesuccess ]
