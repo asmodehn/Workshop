@@ -40,9 +40,9 @@ hangman: context [
 					origin 0x0
 					space 0x0
 					size main-size
-					image 666X535 %Hangman-data/stick0.bmp effect [ fit ] 
-					image 666x65 %Hangman-data/title.png effect [ fit ]
-					return
+					backdrop %Hangman-data/TitleScreen.png
+					
+					at 333x400
 					start-btn: button 134x50 %Hangman-data/Start.png backcolor white 
 					backcolor green
 	] 0x0
@@ -63,6 +63,14 @@ hangman: context [
 		]
 	]
 	
+	animgrenade: []
+	file-list: read %./Hangman-data/grenade/
+	foreach file file-list [
+		if find to-string file "grenade" [
+			append animgrenade rejoin [ %./Hangman-data/grenade/ file ]
+		]
+	]
+	
 	gamerunning: layout/offset [ 
 				origin 0x0
 				space 0x0
@@ -75,7 +83,7 @@ hangman: context [
 				word-pane: box 666x65 white
 				return			
 				btn-pane: box 134x600 white
-				backcolor blue
+				backcolor white
 	] 0x0
 	
 	play-anim-idle: does [
@@ -87,6 +95,7 @@ hangman: context [
 	]
 	
 	play-anim-car: does [
+		hide btn-pane
 		anim-time: ( length? animcar ) / 24 
 		anim-pane/pane: layout/offset [
 							origin 0x0
@@ -94,9 +103,23 @@ hangman: context [
 						] 0x0
 		show anim-pane
 		wait anim-time
+		show btn-pane
 		play-anim-idle 
 	]
 
+	play-anim-grenade: does [
+		hide btn-pane
+		anim-time: ( length? animgrenade ) / 24 
+		anim-pane/pane: layout/offset [
+							origin 0x0
+							anim 666x535 rate 24 frames animgrenade	effect [ fit ]
+						] 0x0
+		show anim-pane
+		wait anim-time
+		show btn-pane
+		play-anim-idle 
+	]
+	
 	draw-life-bar: does [ 
 		life-box: reduce [ 'origin 0x0 'space 0x0 'box to-pair rejoin [( 650 * life / max-life ) "x10" ] 'black ] 
 		life-bar/pane: layout/offset life-box 0x0
@@ -196,7 +219,7 @@ hangman: context [
 		show gamerunning
 		if not found [
 			lose-life
-			play-anim-car
+			do first random [ play-anim-car play-anim-grenade ]
 		]
 		
 		if/else life = 0 [
