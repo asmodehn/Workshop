@@ -114,9 +114,13 @@ hangman: context [
 		show anim-pane
 	]
 	
-	play-anim-car: does [
+	play-anim-car: func [ timeout ]  [
 		hide btn-pane
-		anim-car-time: ( length? animcar ) / 24 
+			if/else timeout < 0 [
+				anim-car-time: ( length? animcar ) / 24 
+			][
+				anim-car-time: timeout
+			]
 		anim-pane/pane: layout/offset [
 							origin 0x0
 							anim 666x535 rate 24 frames animcar	effect [ fit ]
@@ -127,9 +131,14 @@ hangman: context [
 		play-anim-idle 
 	]
 
-	play-anim-grenade: does [
+	play-anim-grenade: func [ timeout ] [
 		hide btn-pane
-		anim-grenade-time: ( length? animgrenade ) / 24 
+			if/else timeout < 0 [
+				anim-grenade-time: ( length? animgrenade ) / 24 
+			][
+				anim-grenade-time: timeout
+			]
+		
 		anim-pane/pane: layout/offset [
 							origin 0x0
 							anim 666x535 rate 24 frames animgrenade	effect [ fit ]
@@ -246,14 +255,15 @@ hangman: context [
 		show gamerunning
 		if not found [
 			lose-life
-			do first random [ play-anim-car play-anim-grenade ]
 		]
 		
 		if/else life = 0 [
+			do first random [ "hangman/play-anim-car 3 " "hangman/play-anim-grenade 3 " ]
 			main/pane: [ gameover ]
 			play-sound %Hangman-data/epic_fail.wav
 			show main
 		][
+			do first random [ "hangman/play-anim-car -1" "hangman/play-anim-grenade -1" ]
 			if not find hiddenword "_"
 			[
 				main/pane: [ gamesuccess ]
