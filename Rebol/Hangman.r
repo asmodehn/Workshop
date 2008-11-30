@@ -12,7 +12,10 @@ hangman: context [
 	do %Hangman-data.r
 	
 	main-size: 800x600
-	wordlist: [ "croissant" "baguette" ]	
+	;wordlist: [ "croissant" "baguette" ]	
+	
+	do %Hangman-dictionary.r
+	
 	sound-port: open sound:// 
 	max-life: 5
 	
@@ -68,6 +71,23 @@ hangman: context [
 	foreach file file-list [
 		if find to-string file "grenade" [
 			append animgrenade rejoin [ %./Hangman-data/grenade/ file ]
+		]
+	]
+	
+	
+	animwinner: []
+	file-list: read %./Hangman-data/winner/
+	foreach file file-list [
+		if find to-string file "winner" [
+			append animwinner rejoin [ %./Hangman-data/winner/ file ]
+		]
+	]
+	
+	animloser: []
+	file-list: read %./Hangman-data/loser/
+	foreach file file-list [
+		if find to-string file "loser" [
+			append animloser rejoin [ %./Hangman-data/loser/ file ]
 		]
 	]
 	
@@ -130,7 +150,9 @@ hangman: context [
 				origin 0x0
 				space 0x0 
 				size main-size
-				image %Hangman-data/lose.png [
+				anim 800x600 rate 24 frames animloser
+				at 400x300
+				button 100x50 %Hangman-data/lose.png [
 					restart
 				]
 				backcolor red	
@@ -140,7 +162,9 @@ hangman: context [
 				origin 0x0
 				space 0x0
 				size main-size
-				image %Hangman-data/win.png [
+				anim 800x600 rate 24 frames animwinner
+				at 400x300
+				button 100x50 %Hangman-data/win.png [
 					restart
 				] 
 				backcolor green
@@ -296,5 +320,5 @@ insert-event-func func [face event] bind [
 ] in hangman 'self
 
 if any [not system/script/args empty? form system/script/args] [
-	hangman/restart
+	do hangman/restart
 ]
