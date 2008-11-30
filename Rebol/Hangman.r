@@ -251,7 +251,7 @@ hangman: context [
 		draw-text hiddenword
 		remake-buttons
 		show gamerunning
-		if not found [
+		if/else not found [
 			lose-life
 			if/else life = 0 [
 				do first random [ "hangman/play-anim-car 2.5 " "hangman/play-anim-grenade 2.5 " ]
@@ -261,12 +261,13 @@ hangman: context [
 			][
 				do first random [ "hangman/play-anim-car -1" "hangman/play-anim-grenade -1" ]
 				play-anim-idle 
-				if not find hiddenword "_"
-				[
-					main/pane: [ gamesuccess ]
-					play-sound %Hangman-data/flawless_victory.wav
-					show main
-				]
+			]
+		][
+			if not find hiddenword "_"
+			[
+				main/pane: [ gamesuccess ]
+				play-sound %Hangman-data/flawless_victory.wav
+				show main
 			]
 		]
 	] 	
