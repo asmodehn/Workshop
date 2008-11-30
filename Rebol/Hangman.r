@@ -255,20 +255,19 @@ hangman: context [
 		show gamerunning
 		if not found [
 			lose-life
-		]
-		
-		if/else life = 0 [
-			do first random [ "hangman/play-anim-car 3 " "hangman/play-anim-grenade 3 " ]
-			main/pane: [ gameover ]
-			play-sound %Hangman-data/epic_fail.wav
-			show main
-		][
-			do first random [ "hangman/play-anim-car -1" "hangman/play-anim-grenade -1" ]
-			if not find hiddenword "_"
-			[
-				main/pane: [ gamesuccess ]
-				play-sound %Hangman-data/flawless_victory.wav
+			if/else life = 0 [
+				do first random [ "hangman/play-anim-car 3 " "hangman/play-anim-grenade 3 " ]
+				main/pane: [ gameover ]
+				play-sound %Hangman-data/epic_fail.wav
 				show main
+			][
+				do first random [ "hangman/play-anim-car -1" "hangman/play-anim-grenade -1" ]
+				if not find hiddenword "_"
+				[
+					main/pane: [ gamesuccess ]
+					play-sound %Hangman-data/flawless_victory.wav
+					show main
+				]
 			]
 		]
 	] 	
