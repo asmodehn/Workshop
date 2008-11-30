@@ -30,8 +30,8 @@ hangman: context [
 	]
 
 	restart: does [
-					main/pane: [ startup ] 
-				    clear sound-port
+					hangman/main/pane: [ startup ] 
+				    clear hangman/sound-port
 					play-sound %Hangman-data/Mortalk1.wav
 					view center-face hangman/main
 	]
@@ -151,7 +151,6 @@ hangman: context [
 				title "Hangman"
 				backcolor black
 	]
-	main/pane: [ startup ]
 	
 	start-btn/action: [ 
 		init
@@ -278,8 +277,6 @@ hangman: context [
 		btn-pane/pane: layout/offset buttons 0x0
 		show btn-pane
 	]
-
-
 	
 ]
 
@@ -299,7 +296,5 @@ insert-event-func func [face event] bind [
 ] in hangman 'self
 
 if any [not system/script/args empty? form system/script/args] [
-	    clear hangman/sound-port
-		hangman/play-sound %Hangman-data/Mortalk1.wav
-		view center-face hangman/main
+	hangman/restart
 ]
