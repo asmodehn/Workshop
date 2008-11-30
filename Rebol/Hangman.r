@@ -151,6 +151,8 @@ hangman: context [
 				space 0x0 
 				size main-size
 				anim 800x600 rate 24 frames animloser
+				at 90x0
+				image 620x167 %Hangman-data/lose.png
 				at 400x300
 				button 100x50 %Hangman-data/lose.png [
 					restart
@@ -163,6 +165,8 @@ hangman: context [
 				space 0x0
 				size main-size
 				anim 800x600 rate 24 frames animwinner
+				at 124x0
+				image 552x167 %Hangman-data/win.png
 				at 400x300
 				button 100x50 %Hangman-data/win.png [
 					restart
