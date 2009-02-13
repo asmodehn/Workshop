@@ -1,0 +1,1 @@
+link ../../../CMake/WkCompilerSetup.cmake
