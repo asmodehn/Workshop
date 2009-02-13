@@ -1,4 +1,5 @@
 Use CppUnit
 use log4cpp
 use stlport
-use pthreads-win32
+use pthreads-win32 -> NO wait for new standard C++09 -> thread standardized :)
+test sharedptr

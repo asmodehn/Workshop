@@ -1,0 +1,1 @@
+link ../../../CMake/WkTest.cmake
