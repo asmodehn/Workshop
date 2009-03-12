@@ -52,6 +52,9 @@ namespace RAGE
     }
     Loglevel;
     
+	//inheriting from std::ostream seems to be a good idea, so that client of the Logger library dont need to rewrite their code to use it
+	//TODO : reimplement it if needed.
+	//TODO : implement a virtual fonction log() that can be overloaded if needed ( for thread locking before, or smthg else... )
     class Logger //: public std::ostream
     {
         int _indentlvl,_indentwidth;
