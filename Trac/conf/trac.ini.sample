@@ -1,0 +1,11 @@
+# -*- coding: utf-8 -*-
+
+[inherit]
+file = /usr/pkg/share/trac/conf/trac.ini
+
+[project]
+admin =
+descr = Just a simple Trac Config Test Project
+name = Trac Test Project
+url =
+
