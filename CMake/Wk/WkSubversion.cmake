@@ -5,29 +5,21 @@ if ( CMAKE_BACKWARDS_COMPATIBILITY LESS 2.6 )
 	message ( FATAL_ERROR " CMAKE MINIMUM BACKWARD COMPATIBILITY REQUIRED : 2.6 !" )
 endif( CMAKE_BACKWARDS_COMPATIBILITY LESS 2.6 )
 
-# macro to get the SVN Revision number
-find_program( SVNVERSION
-  svnversion
-  /usr/local/bin
-  /usr/pkg/bin
-  /usr/bin
-)
-
-macro( svn_repository_version DESTVAR TOPDIR )
-	# Only work if SVNVERSION exist (prog found)
-	IF(SVNVERSION)
-		exec_program( ${SVNVERSION} ${TOPDIR} ARGS "." OUTPUT_VARIABLE DESTVARORI )
-		STRING(REGEX REPLACE "(.+):(.+)" "\\1_\\2" ${DESTVAR} ${DESTVARORI})
-	ENDIF(SVNVERSION)
-endmacro( svn_repository_version )
-
-
 #
-# Common use of Cmake in RAGE
+# Common use of Cmake in Wk
 #
 
-svn_repository_version( SVN_REV ${CMAKE_SOURCE_DIR})
-SET (VERSION ${SVN_REV} CACHE STRING "The detected revision of the source repository" FORCE)
 
-SET(BUILD_SHARED_LIBS OFF)
+macro (WkSvn project_name)
 
+find_package(Subversion)
+if(Subversion_FOUND)
+	Subversion_WC_INFO(${PROJECT_SOURCE_DIR} ${Project})
+    Subversion_WC_LOG(${PROJECT_SOURCE_DIR} ${Project})
+    message("Last changed log is ${Project_LAST_CHANGED_LOG}")
+	SET (${project_name}_REVISION ${Project_WC_REVISION} CACHE STRING "The detected revision of the source repository" FORCE)
+else(Subversion_FOUND)
+	SET (${project_name}_REVISION "SVN-NOTFOUND" CACHE STRING "The detected revision of the source repository" FORCE)
+endif(Subversion_FOUND)
+
+endmacro (WkSvn)

@@ -12,7 +12,7 @@ endif( CMAKE_BACKWARDS_COMPATIBILITY LESS 2.6 )
 
 MACRO(WkTestBuild test_name project_name  )
 
-	SET(${project_name}_ENABLE_TESTS OFF CACHE BOOL "Wether or not you want the project to include the tests and enable automatic testing for ${project_name}")
+	option(${project_name}_ENABLE_TESTS "Wether or not you want the project to include the tests and enable automatic testing for ${project_name}" OFF)
 
 	IF(${project_name}_ENABLE_TESTS)
 		ENABLE_TESTING()
@@ -39,15 +39,16 @@ MACRO(WkTestBuild test_name project_name  )
 			ADD_EXECUTABLE(${test_name} ${testsource})
 			TARGET_LINK_LIBRARIES(${test_name} ${project_name})
 			ADD_DEPENDENCIES(${test_name} ${project_name})
-			GET_TARGET_PROPERTY(${test_name}_LOCATION ${test_name} LOCATION)
-								
-			#move test target to test subdir with build type management
-			#ADD_CUSTOM_COMMAND( TARGET ${test_name} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy ${${test_name}_LOCATION} ${PROJECT_BINARY_DIR}/test/
-			#										COMMENT "Copying File ${test_name} From ${${test_name}_LOCATION} To ${PROJECT_BINARY_DIR}/test/" )
 			
-			#ADD_CUSTOM_COMMAND( TARGET ${test_name} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E remove ${${test_name}_LOCATION} 
-			#										COMMENT "Removing File ${test_name} From ${${test_name}_LOCATION}" )
-		
+			#We need to move project libraries and dependencies to the test target location
+			#TODO : only when lib dynamic ( and module )
+			#TODO : dependencies
+			GET_TARGET_PROPERTY(${project_name}_LOCATION ${project_name} LOCATION)
+			GET_TARGET_PROPERTY(${test_name}_LOCATION ${test_name} LOCATION)
+			get_filename_component(${test_name}_PATH ${${test_name}_LOCATION} PATH)
+			ADD_CUSTOM_COMMAND( TARGET ${test_name} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy ${${project_name}_LOCATION} ${${test_name}_PATH}
+													COMMENT "Copying ${${project_name}_LOCATION} to ${${test_name}_PATH}" )
+			
 			#if test arguments
 			IF ( ${ARGC} GREATER 2 )
 				#Forcing static libraries. test are always executables, and shared libraries or modules should be built and installed separately, if they ever have to come into a test...
@@ -101,14 +102,14 @@ ENDMACRO(WkTestRun)
 
 #WkTestAllOnce ( project_name [common additional dependencies [...] ])
 
-MACRO(WkTestAllOnce project_name )
+macro(WkTestAllOnce project_name )
 
-	FILE(GLOB testsources RELATIVE ${PROJECT_SOURCE_DIR} test/*.c test/*.cpp test/*.cc)
-	MESSAGE ( STATUS "Test Sources : ${testsources} " )
-	FOREACH ( testsrc ${testsources} )
-		GET_FILENAME_COMPONENT(testtarget ${testsrc} NAME_WE)
+	file(GLOB testsources RELATIVE ${PROJECT_SOURCE_DIR} test/*.c test/*.cpp test/*.cc)
+	message ( STATUS "Test Sources : ${testsources} " )
+	foreach ( testsrc ${testsources} )
+		get_filename_component(testtarget ${testsrc} NAME_WE)
 		WkTestBuild(${testtarget} ${project_name} ${ARGN} )
 		WkTestRun(${testtarget} ${project_name})
-	ENDFOREACH ( testsrc ${testsources} )
+	endforeach ( testsrc ${testsources} )
 	
-ENDMACRO(WkTestAllOnce)
+endmacro(WkTestAllOnce)

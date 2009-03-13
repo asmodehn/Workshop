@@ -109,8 +109,12 @@ macro (WkBuild project_name project_type load_type)
 	FILE(GLOB_RECURSE HEADERS RELATIVE ${PROJECT_SOURCE_DIR} include/*.h include/*.hh include/*.hpp)
 	FILE(GLOB_RECURSE SOURCES RELATIVE ${PROJECT_SOURCE_DIR} src/*.c src/*.cpp src/*.cc)
 
-	#Including configured headers (binary for the configured header, source for the unmodified ones, and in source/src for internal ones)
-	INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src)
+	#Including configured headers (
+	#	-binary for the configured header, 
+	#	-Cmake for Wk headers
+	#	-source for the unmodified ones, 
+	#	-and in source/src for internal ones)
+	INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/CMake ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src)
  
    #Including dependencies' headers
    #
