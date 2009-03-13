@@ -4,6 +4,10 @@
 # One source file can be used for a set of tests.
 #
 
+if ( CMAKE_BACKWARDS_COMPATIBILITY LESS 2.6 )
+	message ( FATAL_ERROR " CMAKE MINIMUM BACKWARD COMPATIBILITY REQUIRED : 2.6 !" )
+endif( CMAKE_BACKWARDS_COMPATIBILITY LESS 2.6 )
+
 #WkTestBuild( test_name project_dependencies [ other_dependencies [...] ] )
 
 MACRO(WkTestBuild test_name project_name  )

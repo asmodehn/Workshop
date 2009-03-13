@@ -1,6 +1,9 @@
 #TODO : Use SVN version to find > 1.1.0 : supports symbolic links :D
 #TODO : Use CMake > 2.6 : find subversion has been added
 
+if ( CMAKE_BACKWARDS_COMPATIBILITY LESS 2.6 )
+	message ( FATAL_ERROR " CMAKE MINIMUM BACKWARD COMPATIBILITY REQUIRED : 2.6 !" )
+endif( CMAKE_BACKWARDS_COMPATIBILITY LESS 2.6 )
 
 # macro to get the SVN Revision number
 find_program( SVNVERSION
