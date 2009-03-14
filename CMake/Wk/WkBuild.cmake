@@ -81,15 +81,15 @@ macro (WkBuild project_name project_type load_type)
 #	ENDIF(${project_type} STREQUAL "LIBRARY")
 #	IF(${project_type} STREQUAL "EXECUTABLE")
 		#Building dependencies recursively.
-		file(GLOB project_depends RELATIVE ${PROJECT_SOURCE_DIR} ext/* )
+		file(GLOB project_source_depends RELATIVE ${PROJECT_SOURCE_DIR} ext/* )
 				
 		message ( STATUS " Dependencies detected : ${project_depends}" )
 		
-		if ( ${project_depends} )
+		if ( ${project_source_depends} )
 			set(${project_name}_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
-			#making sure that by default we build static libraries
+			#making sure that by default we build static libraries for source dependencies
 			set(BUILD_SHARED_LIBS OFF)
-			foreach ( looparg ${project_depends} )
+			foreach ( looparg ${project_source_depends} )
 				message ( STATUS "==" )
 				message ( STATUS "Cmake'ing dependency ${looparg} : Started." )
 				#building in separate build directory in case the father project is built in source...
@@ -99,7 +99,7 @@ macro (WkBuild project_name project_type load_type)
 			endforeach ( looparg )
 			#MESSAGE ( STATUS "Back to configuring ${project_name} build" )
 			set( BUILD_SHARED_LIBS ${${project_name}_BUILD_SHARED_LIBS} )
-		endif ( ${project_depends} )
+		endif ( ${project_source_depends} )
 #	ENDIF(${project_type} STREQUAL "EXECUTABLE")
 	
 				
@@ -129,7 +129,6 @@ macro (WkBuild project_name project_type load_type)
 	#MESSAGE ( STATUS "Sources : ${SOURCES}" )
 	
 	if(${project_type} STREQUAL "LIBRARY")
-		#message ( SEND_ERROR "add_library(${project_name} ${load_type} ${SOURCES} )" )
 		add_library(${project_name} ${load_type} ${SOURCES})
 		if(${load_type} STREQUAL "SHARED")
 			set_target_properties(${project_name} PROPERTIES DEFINE_SYMBOL "WK_SHAREDLIB_BUILD")
@@ -147,8 +146,8 @@ macro (WkBuild project_name project_type load_type)
 	#Linking dependencies
 	#
 	
-	IF ( ${project_depends} )
-		FOREACH ( looparg ${project_depends} )
+	IF ( ${project_source_depends} )
+		FOREACH ( looparg ${project_source_depends} )
 			IF(${project_type} STREQUAL "LIBRARY")
 				# CMake doesnt support convenience lib right now
 			ENDIF(${project_type} STREQUAL "LIBRARY")
@@ -157,7 +156,7 @@ macro (WkBuild project_name project_type load_type)
 				ADD_DEPENDENCIES(${project_name} ${looparg})
 			ENDIF(${project_type} STREQUAL "EXECUTABLE")
 		ENDFOREACH ( looparg )
-	ENDIF ( ${project_depends} )
+	ENDIF ( ${project_source_depends} )
 	
 	#
 	# Defining where to put what has been built
@@ -180,7 +179,39 @@ macro (WkBuild project_name project_type load_type)
 	endif(${project_type} STREQUAL "LIBRARY") 
 	
 	
-	#is that really usefull ?
-	EXPORT_LIBRARY_DEPENDENCIES(${PROJECT_BINARY_DIR}/CMakeDepends.txt)
+	#
+	#Exporting dependencies and main targets
+	#
+	
+	export(TARGETS ${project_name} FILE Depends.cmake)
 
 endmacro (WkBuild)
+
+
+#
+# Link dependencies to target
+#
+
+macro (WkDepends project_name )
+
+foreach ( looparg ${ARGN} )
+	set (${project_name}_bin_depends "${${project_name}_bin_depends} ${looparg}" STRING CACHE " External built Dependencies of ${project_name} " )
+	target_link_libraries( ${project_name} ${looparg} )
+	add_dependencies ( ${project_name} ${looparg} )
+endforeach ( looparg ${ARGN} )
+
+endmacro (WkDepends project_name )
+
+
+#
+# Find a dependency in an external WK hierarchy
+# Different than for dependencies in the same WKHierarchy (automatically detected in ext/*)
+# Different than for a package because this dependency hasnt been installed yet.
+#
+
+macro (WkFindBuild projectbuild_binpath)
+
+file(GLOB projecttargets ${projectbuild_binpath}/Depends.cmake)
+include(${projecttargets})
+
+endmacro (WkFindBuild projectbuild_binpath)
