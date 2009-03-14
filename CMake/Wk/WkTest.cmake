@@ -40,13 +40,14 @@ MACRO(WkTestBuild test_name project_name  )
 			TARGET_LINK_LIBRARIES(${test_name} ${project_name})
 			ADD_DEPENDENCIES(${test_name} ${project_name})
 			
-			#We need to move project libraries and dependencies to the test target location
+			#We need to move project libraries and dependencies to the test target location after build.
+			#We need to do that everytime to make sure we have the latest version
 			#TODO : only when lib dynamic ( and module )
 			#TODO : dependencies
 			GET_TARGET_PROPERTY(${project_name}_LOCATION ${project_name} LOCATION)
 			GET_TARGET_PROPERTY(${test_name}_LOCATION ${test_name} LOCATION)
 			get_filename_component(${test_name}_PATH ${${test_name}_LOCATION} PATH)
-			ADD_CUSTOM_COMMAND( TARGET ${test_name} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy ${${project_name}_LOCATION} ${${test_name}_PATH}
+			ADD_CUSTOM_COMMAND( TARGET ${test_name} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${${project_name}_LOCATION} ${${test_name}_PATH}
 													COMMENT "Copying ${${project_name}_LOCATION} to ${${test_name}_PATH}" )
 			
 			#if test arguments

@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-WK_DECLSPEC_EXPORT int C_display(const char* txt);
+WK_DECLSPEC int C_display(const char* txt);
 
 /* Ends C function definitions when using C++ */
 #ifdef __cplusplus

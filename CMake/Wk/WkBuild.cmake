@@ -131,6 +131,9 @@ macro (WkBuild project_name project_type load_type)
 	if(${project_type} STREQUAL "LIBRARY")
 		#message ( SEND_ERROR "add_library(${project_name} ${load_type} ${SOURCES} )" )
 		add_library(${project_name} ${load_type} ${SOURCES})
+		if(${load_type} STREQUAL "SHARED")
+			set_target_properties(${project_name} PROPERTIES DEFINE_SYMBOL "WK_SHAREDLIB_BUILD")
+		endif(${load_type} STREQUAL "SHARED")
 	endif(${project_type} STREQUAL "LIBRARY")
 	if(${project_type} STREQUAL "EXECUTABLE")
 		add_executable(${project_name} ${SOURCES})
@@ -166,6 +169,17 @@ macro (WkBuild project_name project_type load_type)
 	SET(${project_name}_EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin CACHE PATH "Ouput directory for ${Project} executables." )
 	SET(EXECUTABLE_OUTPUT_PATH "${${project_name}_EXECUTABLE_OUTPUT_PATH}" CACHE INTERNAL "Internal CMake executables output directory. Do not edit." FORCE)
 
+	#
+	# Copying include directory if needed after build ( for  use by another project later )
+	# for library (and modules ? )
+	#
+	
+	if(${project_type} STREQUAL "LIBRARY") 
+		ADD_CUSTOM_COMMAND( TARGET ${project_name} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy_directory ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+													COMMENT "Copying ${PROJECT_SOURCE_DIR}/include to ${PROJECT_BINARY_DIR}" )
+	endif(${project_type} STREQUAL "LIBRARY") 
+	
+	
 	#is that really usefull ?
 	EXPORT_LIBRARY_DEPENDENCIES(${PROJECT_BINARY_DIR}/CMakeDepends.txt)
 
