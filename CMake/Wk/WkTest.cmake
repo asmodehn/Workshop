@@ -33,6 +33,7 @@ MACRO(WkTestBuild test_name project_name  )
 			
 			#Set where test executables should be found
 			SET(${project_name}_TESTS_OUTPUT_PATH ${PROJECT_BINARY_DIR}/test CACHE PATH "Ouput directory for ${Project} tests.")
+			#mark_as_advanced(FORCE ${project_name}_TESTS_OUTPUT_PATH)
 			SET(EXECUTABLE_OUTPUT_PATH "${${project_name}_TESTS_OUTPUT_PATH}" CACHE INTERNAL "Internal CMake executables output directory. Do not edit." FORCE)
 
 			#SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)

@@ -33,7 +33,11 @@ ENDMACRO(MERGE ALIST BLIST OUTPUT)
 
 #WkBuild( project_name EXECUTABLE | LIBRARY [ STATIC|SHARED|MODULE ]  )
 
-macro (WkBuild project_name project_type load_type)
+macro (WkBuild project_name project_type )
+
+	if ( ${ARGC} GREATER 2 )
+		set(load_type ${ARGV2} )
+	endif ( ${ARGC} GREATER 2 )
 
 	message ( STATUS "Configuring ${project_name}" )	
 		
@@ -85,7 +89,7 @@ macro (WkBuild project_name project_type load_type)
 				
 		message ( STATUS " Dependencies detected : ${project_depends}" )
 		
-		if ( ${project_source_depends} )
+		if ( project_source_depends )
 			set(${project_name}_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 			#making sure that by default we build static libraries for source dependencies
 			set(BUILD_SHARED_LIBS OFF)
@@ -99,7 +103,7 @@ macro (WkBuild project_name project_type load_type)
 			endforeach ( looparg )
 			#MESSAGE ( STATUS "Back to configuring ${project_name} build" )
 			set( BUILD_SHARED_LIBS ${${project_name}_BUILD_SHARED_LIBS} )
-		endif ( ${project_source_depends} )
+		endif ( project_source_depends )
 #	ENDIF(${project_type} STREQUAL "EXECUTABLE")
 	
 				
@@ -146,7 +150,7 @@ macro (WkBuild project_name project_type load_type)
 	#Linking dependencies
 	#
 	
-	IF ( ${project_source_depends} )
+	IF ( project_source_depends )
 		FOREACH ( looparg ${project_source_depends} )
 			IF(${project_type} STREQUAL "LIBRARY")
 				# CMake doesnt support convenience lib right now
@@ -156,16 +160,18 @@ macro (WkBuild project_name project_type load_type)
 				ADD_DEPENDENCIES(${project_name} ${looparg})
 			ENDIF(${project_type} STREQUAL "EXECUTABLE")
 		ENDFOREACH ( looparg )
-	ENDIF ( ${project_source_depends} )
+	ENDIF ( project_source_depends )
 	
 	#
 	# Defining where to put what has been built
 	#
 	
 	SET(${project_name}_LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib CACHE PATH "Ouput directory for ${Project} libraries." )
+	mark_as_advanced(FORCE ${project_name}_LIBRARY_OUTPUT_PATH)
 	SET(LIBRARY_OUTPUT_PATH "${${project_name}_LIBRARY_OUTPUT_PATH}" CACHE INTERNAL "Internal CMake libraries output directory. Do not edit." FORCE)
 	
 	SET(${project_name}_EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin CACHE PATH "Ouput directory for ${Project} executables." )
+	mark_as_advanced(FORCE ${project_name}_EXECUTABLE_OUTPUT_PATH)
 	SET(EXECUTABLE_OUTPUT_PATH "${${project_name}_EXECUTABLE_OUTPUT_PATH}" CACHE INTERNAL "Internal CMake executables output directory. Do not edit." FORCE)
 
 	#
@@ -187,31 +193,29 @@ macro (WkBuild project_name project_type load_type)
 
 endmacro (WkBuild)
 
-
 #
-# Link dependencies to target
-#
-
-macro (WkDepends project_name )
-
-foreach ( looparg ${ARGN} )
-	set (${project_name}_bin_depends "${${project_name}_bin_depends} ${looparg}" STRING CACHE " External built Dependencies of ${project_name} " )
-	target_link_libraries( ${project_name} ${looparg} )
-	add_dependencies ( ${project_name} ${looparg} )
-endforeach ( looparg ${ARGN} )
-
-endmacro (WkDepends project_name )
-
-
-#
-# Find a dependency in an external WK hierarchy
-# Different than for dependencies in the same WKHierarchy (automatically detected in ext/*)
+# Find a dependency built in an external WK hierarchy
+# Different than for dependencies in the same WKHierarchy (automatically detected in ext/* and statically built and linked )
 # Different than for a package because this dependency hasnt been installed yet.
 #
 
-macro (WkFindBuild projectbuild_binpath)
+macro (WkBuildDepends project_name )
 
-file(GLOB projecttargets ${projectbuild_binpath}/Depends.cmake)
-include(${projecttargets})
+foreach ( looparg ${ARGN} )
+	
+	SET(${looparg}_DEPEND_PATH ${looparg}_build CACHE PATH "Binary build directory for ${looparg} project." )
+	
+	file(GLOB projecttargets ${${looparg}_DEPEND_PATH}/Depends.cmake)
+	
+	if ( projecttargets )
+		include(${projecttargets})
+		#set (${project_name}_bin_depends "${${project_name}_bin_depends} ${looparg}")
+		target_link_libraries( ${project_name} ${looparg} )
+		add_dependencies ( ${project_name} ${looparg} )
+	else ( projecttargets )
+		message ( SEND_ERROR "${looparg} build not detected ( looking for Depends.cmake ). Please correct ${looparg}_DEPEND_PATH" )
+	endif ( projecttargets )
 
-endmacro (WkFindBuild projectbuild_binpath)
+endforeach ( looparg ${ARGN} )
+
+endmacro  (WkBuildDepends project_name )
