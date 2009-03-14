@@ -31,8 +31,10 @@ MACRO(WkTestBuild test_name project_name  )
 				FILE ( MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/test/${CMAKE_BUILD_TYPE} )
 			ENDIF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test/${CMAKE_BUILD_TYPE} )
 			
-			#Set where main library & test executables should be founded (useful for debuging under VS)
-			SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/test)
+			#Set where test executables should be found
+			SET(${project_name}_TESTS_OUTPUT_PATH ${PROJECT_BINARY_DIR}/test CACHE PATH "Ouput directory for ${Project} tests.")
+			SET(EXECUTABLE_OUTPUT_PATH "${${project_name}_TESTS_OUTPUT_PATH}" CACHE INTERNAL "Internal CMake executables output directory. Do not edit." FORCE)
+
 			#SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 			
 			#build
