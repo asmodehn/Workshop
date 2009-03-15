@@ -1,5 +1,5 @@
-#ifndef HEADER_H
-#define HEADER_H
+#ifndef PROJECTC_H
+#define PROJECTC_H
 
 #include "WkPlatform.hh"
 
@@ -15,4 +15,4 @@ WK_DECLSPEC int C_display(const char* txt);
 }
 #endif
 
-#endif
+#endif /* PROJECTC */
