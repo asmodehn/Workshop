@@ -1,14 +1,12 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+	
+INCLUDE ( CMake/WkBuild.cmake )
+INCLUDE ( CMake/WkTest.cmake )
 
-PROJECT( ProjectB C )
+WkProject( ProjectB C )
 
-INCLUDE ( CMake/WkCMake/WkCompilerSetup.cmake )
-INCLUDE ( CMake/WkCMake/WkBuild.cmake )
-INCLUDE ( CMake/WkCMake/WkTest.cmake )
+WkBuild( LIBRARY STATIC )
+WkBinDepends( ProjectC )
 
-WkCompilerSetup( ProjectB )
-
-WkBuild( ProjectB LIBRARY )
-
-WkTestAllOnce( ProjectB )
-
+WkTestBuild( maintestB )
+WkTestRun( maintestB )
