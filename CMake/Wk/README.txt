@@ -3,8 +3,8 @@ along with cmake files able to build them and link them together in different wa
 
 Wk CMake currently supports :
 
- - one main target per project hierarchy plus few simple tests files ( in test/ subdirectory )
+ - only one main target per project hierarchy 
+ - Few simple executable tests ( in test/ subdirectory ) that dont require additional dependencies
  - target can be executable, library shared or static (module not tested yet, need a MAC)
  - source dependency ( in ext/ subdirectory )
- - bin dependency (in another Wk build directory )
- - 
+ - binary dependency ( in another Wk build directory )

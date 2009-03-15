@@ -4,76 +4,74 @@
 # One source file can be used for a set of tests.
 #
 
-if ( CMAKE_BACKWARDS_COMPATIBILITY LESS 2.6 )
-	message ( FATAL_ERROR " CMAKE MINIMUM BACKWARD COMPATIBILITY REQUIRED : 2.6 !" )
-endif( CMAKE_BACKWARDS_COMPATIBILITY LESS 2.6 )
+if ( CMAKE_BACKWARDS_COMPATIBILITY LESS 2.6.3 )
+	message ( FATAL_ERROR " CMAKE MINIMUM BACKWARD COMPATIBILITY REQUIRED : 2.6.3 !" )
+endif( CMAKE_BACKWARDS_COMPATIBILITY LESS 2.6.3 )
 
-#WkTestBuild( test_name project_dependencies [ other_dependencies [...] ] )
+#WkTestBuild( test_name )
 
-MACRO(WkTestBuild test_name project_name  )
+MACRO(WkTestBuild )
 
-	option(${project_name}_ENABLE_TESTS "Wether or not you want the project to include the tests and enable automatic testing for ${project_name}" OFF)
+	option(${PROJECT_NAME}_ENABLE_TESTS "Wether or not you want the project to include the tests and enable automatic testing for ${PROJECT_NAME}" OFF)
 
-	IF(${project_name}_ENABLE_TESTS)
+	
+					foreach ( looparg ${${PROJECT_NAME}_bin_depends} )
+					#reincluding export file to get dependencies...
+					include(${${looparg}_EXPORT_CMAKE}) 
+					GET_TARGET_PROPERTY(${looparg}_LOCATION ${looparg} IMPORTED_LOCATION_RELEASE)
+					message ( SEND_ERROR "${${looparg}_LOCATION}" )
+					endforeach ( looparg ${${PROJECT_NAME}_bin_depends} )
+	
+	IF(${PROJECT_NAME}_ENABLE_TESTS)
 		ENABLE_TESTING()
 		
-		FILE(GLOB testsource RELATIVE ${PROJECT_SOURCE_DIR} test/${test_name}.c test/${test_name}.cc test/${test_name}.cpp )
-		#MESSAGE ( STATUS "Detected ${test_name} Source : ${testsource}" )
+		foreach( test_name ${ARGN})
+			FILE(GLOB testsource RELATIVE ${PROJECT_SOURCE_DIR} test/${test_name}.c test/${test_name}.cc test/${test_name}.cpp )
+			#MESSAGE ( STATUS "Detected ${test_name} Source : ${testsource}" )
 		
-		#To make sure the source file exists
-		IF (testsource)
-			#Create output directories
-			IF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test )
-				FILE ( MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/test )
-			ENDIF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test )
+			#To make sure the source file exists
+			IF (testsource)
+				#Create output directories
+				IF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test )
+					FILE ( MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/test )
+				ENDIF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test )
 			
-			IF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test/${CMAKE_BUILD_TYPE} )
-				FILE ( MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/test/${CMAKE_BUILD_TYPE} )
-			ENDIF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test/${CMAKE_BUILD_TYPE} )
+				#Really needed ??
+				# TODO : investigate
+				IF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test/${CMAKE_BUILD_TYPE} )
+					FILE ( MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/test/${CMAKE_BUILD_TYPE} )
+				ENDIF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test/${CMAKE_BUILD_TYPE} )
 			
-			#Set where test executables should be found
-			SET(${project_name}_TESTS_OUTPUT_PATH ${PROJECT_BINARY_DIR}/test CACHE PATH "Ouput directory for ${Project} tests.")
-			#mark_as_advanced(FORCE ${project_name}_TESTS_OUTPUT_PATH)
-			SET(EXECUTABLE_OUTPUT_PATH "${${project_name}_TESTS_OUTPUT_PATH}" CACHE INTERNAL "Internal CMake executables output directory. Do not edit." FORCE)
-
-			#SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+				#Set where test executables should be found
+				SET(${PROJECT_NAME}_TESTS_OUTPUT_PATH ${PROJECT_BINARY_DIR}/test CACHE PATH "Ouput directory for ${Project} tests.")
+				mark_as_advanced(FORCE ${PROJECT_NAME}_TESTS_OUTPUT_PATH)
+				SET(EXECUTABLE_OUTPUT_PATH "${${PROJECT_NAME}_TESTS_OUTPUT_PATH}" CACHE INTERNAL "Internal CMake executables output directory. Do not edit." FORCE)
 			
-			#build
-			ADD_EXECUTABLE(${test_name} ${testsource})
-			TARGET_LINK_LIBRARIES(${test_name} ${project_name})
-			ADD_DEPENDENCIES(${test_name} ${project_name})
-			
-			#We need to move project libraries and dependencies to the test target location after build.
-			#We need to do that everytime to make sure we have the latest version
-			#TODO : only when lib dynamic ( and module )
-			#TODO : dependencies
-			GET_TARGET_PROPERTY(${project_name}_LOCATION ${project_name} LOCATION)
-			GET_TARGET_PROPERTY(${test_name}_LOCATION ${test_name} LOCATION)
-			get_filename_component(${test_name}_PATH ${${test_name}_LOCATION} PATH)
-			ADD_CUSTOM_COMMAND( TARGET ${test_name} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${${project_name}_LOCATION} ${${test_name}_PATH}
-													COMMENT "Copying ${${project_name}_LOCATION} to ${${test_name}_PATH}" )
-			
-			#if test arguments
-			IF ( ${ARGC} GREATER 2 )
-				#Forcing static libraries. test are always executables, and shared libraries or modules should be built and installed separately, if they ever have to come into a test...
-				SET(${project_name}_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
-				SET(BUILD_SHARED_LIBS OFF)
-				FOREACH ( looparg ${ARGN} )
-					MESSAGE ( STATUS "==" )
-					MESSAGE ( STATUS "Cmake'ing ${test_name} Dependency : ${looparg}" )
-					ADD_SUBDIRECTORY(test/ext/${looparg} test/ext/${looparg}_build EXCLUDE_FROM_ALL)
-					TARGET_LINK_LIBRARIES(${test_name} ${looparg})
-					ADD_DEPENDENCIES(${test_name} ${looparg})
-					INCLUDE_DIRECTORIES(test/ext/${looparg}/include)
-					MESSAGE ( STATUS "Cmake'ing ${looparg} : Done." )
-					MESSAGE ( STATUS "==" )
-				ENDFOREACH ( looparg )
-				#MESSAGE ( STATUS "Back to configuring ${project_name} build" )
-				SET( BUILD_SHARED_LIBS ${${project_name}_BUILD_SHARED_LIBS} )
-			ENDIF ( ${ARGC} GREATER 2  )
-		ENDIF (testsource)
-	
-	ENDIF(${project_name}_ENABLE_TESTS)
+				#build
+				ADD_EXECUTABLE(${test_name} ${testsource})
+				TARGET_LINK_LIBRARIES(${test_name} ${PROJECT_NAME})
+				ADD_DEPENDENCIES(${test_name} ${PROJECT_NAME})
+				
+				#We need to move project libraries and dependencies to the test target location after build.
+				#We need to do that everytime to make sure we have the latest version
+				#TODO : only when lib dynamic ( and module )
+				#TODO : dependencies
+				GET_TARGET_PROPERTY(${PROJECT_NAME}_LOCATION ${PROJECT_NAME} LOCATION)
+				GET_TARGET_PROPERTY(${test_name}_LOCATION ${test_name} LOCATION)
+				get_filename_component(${test_name}_PATH ${${test_name}_LOCATION} PATH)
+				ADD_CUSTOM_COMMAND( TARGET ${test_name} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${${PROJECT_NAME}_LOCATION} ${${test_name}_PATH}
+														COMMENT "Copying ${${PROJECT_NAME}_LOCATION} to ${${test_name}_PATH}" )
+				#needed for each imported binary dependency as well
+				foreach ( looparg ${${PROJECT_NAME}_bin_depends} )
+					GET_TARGET_PROPERTY(${looparg}_LOCATION ${looparg} IMPORTED_LOCATION_RELEASE)
+					message ( SEND_ERROR "${${looparg}_LOCATION}" )
+					ADD_CUSTOM_COMMAND( TARGET ${test_name} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${${looparg}_LOCATION} ${${test_name}_PATH}
+														COMMENT "Copying ${${PROJECT_NAME}_LOCATION} to ${${test_name}_PATH}" )
+				
+				endforeach ( looparg ${${PROJECT_NAME}_bin_depends} )
+			ENDIF (testsource)
+		endforeach ( test_name ${ARGN})
+	ENDIF(${PROJECT_NAME}_ENABLE_TESTS)
 
 ENDMACRO(WkTestBuild)
 
@@ -83,9 +81,9 @@ ENDMACRO(WkTestBuild)
 # WkTestRun( test_name [ arguments [...] ] )
 #
 
-MACRO(WkTestRun test_name project_name)
+MACRO(WkTestRun test_name )
 
-	IF(${project_name}_ENABLE_TESTS)
+	IF(${PROJECT_NAME}_ENABLE_TESTS)
 		ENABLE_TESTING()
 	
 		#if test arguments
@@ -97,23 +95,6 @@ MACRO(WkTestRun test_name project_name)
 			ADD_TEST(${test_name} ${PROJECT_BINARY_DIR}/test/${test_name})
 		ENDIF ( ${ARGC} GREATER 2  )
 	
-	ENDIF(${project_name}_ENABLE_TESTS)
+	ENDIF(${PROJECT_NAME}_ENABLE_TESTS)
 
 ENDMACRO(WkTestRun)
-
-# This helper macro will browse the test subdirectory and create a test target for each file found to be called once without arguments,
-# assuming that each and everysource file in test has a main entry point.
-
-#WkTestAllOnce ( project_name [common additional dependencies [...] ])
-
-macro(WkTestAllOnce project_name )
-
-	file(GLOB testsources RELATIVE ${PROJECT_SOURCE_DIR} test/*.c test/*.cpp test/*.cc)
-	message ( STATUS "Test Sources : ${testsources} " )
-	foreach ( testsrc ${testsources} )
-		get_filename_component(testtarget ${testsrc} NAME_WE)
-		WkTestBuild(${testtarget} ${project_name} ${ARGN} )
-		WkTestRun(${testtarget} ${project_name})
-	endforeach ( testsrc ${testsources} )
-	
-endmacro(WkTestAllOnce)

@@ -2,6 +2,18 @@ if ( CMAKE_BACKWARDS_COMPATIBILITY LESS 2.6 )
 	message ( FATAL_ERROR " CMAKE MINIMUM BACKWARD COMPATIBILITY REQUIRED : 2.6 !" )
 endif( CMAKE_BACKWARDS_COMPATIBILITY LESS 2.6 )
 
+#To setup the compiler
+include ( CMake/WkCompilerSetup.cmake )
+
+macro(WKProject project_name_arg)
+	#stores the name of the project in the cache scope, to be used in others WkMacro calls.
+	#for safety reasons, cannot be changed interactively.
+	set(PROJECT_NAME ${project_name_arg} CACHE STRING "The name of the project and the main target alltogether" FORCE )
+	mark_as_advanced(PROJECT_NAME)
+	project(${PROJECT_NAME} ${ARGN})
+	WkCompilerSetup( )
+endmacro(WKProject PROJECT_NAME)
+
 MACRO(MERGE ALIST BLIST OUTPUT)
    SET(BTEMP ${BLIST})
    FOREACH(A ${ALIST})
@@ -31,15 +43,15 @@ ENDMACRO(MERGE ALIST BLIST OUTPUT)
 # You also need MergeLists.txt 
 #
 
-#WkBuild( project_name EXECUTABLE | LIBRARY [ STATIC|SHARED|MODULE ]  )
+#WkBuild( target_name EXECUTABLE | LIBRARY [ STATIC|SHARED|MODULE ]  )
 
-macro (WkBuild project_name project_type )
+macro (WkBuild project_type )
 
-	if ( ${ARGC} GREATER 2 )
-		set(load_type ${ARGV2} )
-	endif ( ${ARGC} GREATER 2 )
+	if ( ${ARGC} GREATER 1 )
+		set(load_type ${ARGV1} )
+	endif ( ${ARGC} GREATER 1 )
 
-	message ( STATUS "Configuring ${project_name}" )	
+	message ( STATUS "Configuring ${PROJECT_NAME}" )	
 		
 	# testing type
 	if (NOT ${project_type} STREQUAL "EXECUTABLE" AND NOT ${project_type} STREQUAL "LIBRARY" )
@@ -72,28 +84,16 @@ macro (WkBuild project_name project_type )
 		endif(CHECK_MEM_LEAKS)
 	endif (CMAKE_BUILD_TYPE STREQUAL Release)
 	
-#	IF(${project_type} STREQUAL "LIBRARY")
-#		#Building dependencies, forcing them to static libs. Shared libs are supposed to be installed separately.
-#		IF ( ${ARGC} GREATER 2 )
-#			FOREACH ( looparg ${ARGN} )
-#				FILE(GLOB_RECURSE ${looparg}_SRCS RELATIVE ${PROJECT_SOURCE_DIR} ext/${looparg}/src/*.c ext/${looparg}/src/*.cpp ext/${looparg}/src/*.cc)
-#				FILE(GLOB_RECURSE ${looparg}_HEADERS RELATIVE ${PROJECT_SOURCE_DIR} ext/${looparg}/include/*.h ext/${looparg}/include/*.hh ext/${looparg}/include/*.hpp)
-#				MERGE("${DEPENDS_SRCS}" "${${looparg}_HEADERS};${${looparg}_SRCS}" DEPENDS_SRCS)
-#			ENDFOREACH ( looparg )
-#			#MESSAGE ( STATUS "Back to configuring ${project_name} build" )
-#		ENDIF ( ${ARGC} GREATER 2  )
-#	ENDIF(${project_type} STREQUAL "LIBRARY")
-#	IF(${project_type} STREQUAL "EXECUTABLE")
 		#Building dependencies recursively.
-		file(GLOB project_source_depends RELATIVE ${PROJECT_SOURCE_DIR} ext/* )
+		file(GLOB ${PROJECT_NAME}_source_depends RELATIVE ${PROJECT_SOURCE_DIR} ext/* )
 				
-		message ( STATUS " Dependencies detected : ${project_depends}" )
+		message ( STATUS " Dependencies detected : ${${PROJECT_NAME}_source_depends}" )
 		
-		if ( project_source_depends )
-			set(${project_name}_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
+		if ( ${PROJECT_NAME}_source_depends )
+			set(${PROJECT_NAME}_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 			#making sure that by default we build static libraries for source dependencies
 			set(BUILD_SHARED_LIBS OFF)
-			foreach ( looparg ${project_source_depends} )
+			foreach ( looparg ${${PROJECT_NAME}_source_depends} )
 				message ( STATUS "==" )
 				message ( STATUS "Cmake'ing dependency ${looparg} : Started." )
 				#building in separate build directory in case the father project is built in source...
@@ -101,9 +101,9 @@ macro (WkBuild project_name project_type )
 				message ( STATUS "Cmake'ing dependency ${looparg} : Done." )
 				message ( STATUS "==" )
 			endforeach ( looparg )
-			#MESSAGE ( STATUS "Back to configuring ${project_name} build" )
-			set( BUILD_SHARED_LIBS ${${project_name}_BUILD_SHARED_LIBS} )
-		endif ( project_source_depends )
+			#MESSAGE ( STATUS "Back to configuring ${PROJECT_NAME} build" )
+			set( BUILD_SHARED_LIBS ${${PROJECT_NAME}_BUILD_SHARED_LIBS} )
+		endif ( ${PROJECT_NAME}_source_depends )
 #	ENDIF(${project_type} STREQUAL "EXECUTABLE")
 	
 				
@@ -133,46 +133,46 @@ macro (WkBuild project_name project_type )
 	#MESSAGE ( STATUS "Sources : ${SOURCES}" )
 	
 	if(${project_type} STREQUAL "LIBRARY")
-		add_library(${project_name} ${load_type} ${SOURCES})
+		add_library(${PROJECT_NAME} ${load_type} ${SOURCES})
 		if(${load_type} STREQUAL "SHARED")
-			set_target_properties(${project_name} PROPERTIES DEFINE_SYMBOL "WK_SHAREDLIB_BUILD")
+			set_target_properties(${PROJECT_NAME} PROPERTIES DEFINE_SYMBOL "WK_SHAREDLIB_BUILD")
 		endif(${load_type} STREQUAL "SHARED")
 	endif(${project_type} STREQUAL "LIBRARY")
 	if(${project_type} STREQUAL "EXECUTABLE")
-		add_executable(${project_name} ${SOURCES})
+		add_executable(${PROJECT_NAME} ${SOURCES})
 	endif(${project_type} STREQUAL "EXECUTABLE")
 
 	#needed in case we dont have recognised file extension
-	#SET_TARGET_PROPERTIES(${project_name} PROPERTIES LINKER_LANGUAGE CXX)
+	#SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 	#disabled to support different languages
 	
 	#
 	#Linking dependencies
 	#
 	
-	IF ( project_source_depends )
+	IF ( ${PROJECT_NAME}_source_depends )
 		FOREACH ( looparg ${project_source_depends} )
 			IF(${project_type} STREQUAL "LIBRARY")
 				# CMake doesnt support convenience lib right now
 			ENDIF(${project_type} STREQUAL "LIBRARY")
 			IF(${project_type} STREQUAL "EXECUTABLE")
-				TARGET_LINK_LIBRARIES(${project_name} ${looparg})
-				ADD_DEPENDENCIES(${project_name} ${looparg})
+				TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${looparg})
+				ADD_DEPENDENCIES(${PROJECT_NAME} ${looparg})
 			ENDIF(${project_type} STREQUAL "EXECUTABLE")
 		ENDFOREACH ( looparg )
-	ENDIF ( project_source_depends )
+	ENDIF ( ${PROJECT_NAME}_source_depends )
 	
 	#
 	# Defining where to put what has been built
 	#
 	
-	SET(${project_name}_LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib CACHE PATH "Ouput directory for ${Project} libraries." )
-	mark_as_advanced(FORCE ${project_name}_LIBRARY_OUTPUT_PATH)
-	SET(LIBRARY_OUTPUT_PATH "${${project_name}_LIBRARY_OUTPUT_PATH}" CACHE INTERNAL "Internal CMake libraries output directory. Do not edit." FORCE)
+	SET(${PROJECT_NAME}_LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib CACHE PATH "Ouput directory for ${Project} libraries." )
+	mark_as_advanced(FORCE ${PROJECT_NAME}_LIBRARY_OUTPUT_PATH)
+	SET(LIBRARY_OUTPUT_PATH "${${PROJECT_NAME}_LIBRARY_OUTPUT_PATH}" CACHE INTERNAL "Internal CMake libraries output directory. Do not edit." FORCE)
 	
-	SET(${project_name}_EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin CACHE PATH "Ouput directory for ${Project} executables." )
-	mark_as_advanced(FORCE ${project_name}_EXECUTABLE_OUTPUT_PATH)
-	SET(EXECUTABLE_OUTPUT_PATH "${${project_name}_EXECUTABLE_OUTPUT_PATH}" CACHE INTERNAL "Internal CMake executables output directory. Do not edit." FORCE)
+	SET(${PROJECT_NAME}_EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin CACHE PATH "Ouput directory for ${Project} executables." )
+	mark_as_advanced(FORCE ${PROJECT_NAME}_EXECUTABLE_OUTPUT_PATH)
+	SET(EXECUTABLE_OUTPUT_PATH "${${PROJECT_NAME}_EXECUTABLE_OUTPUT_PATH}" CACHE INTERNAL "Internal CMake executables output directory. Do not edit." FORCE)
 
 	#
 	# Copying include directory if needed after build ( for  use by another project later )
@@ -180,16 +180,16 @@ macro (WkBuild project_name project_type )
 	#
 	
 	if(${project_type} STREQUAL "LIBRARY") 
-		ADD_CUSTOM_COMMAND( TARGET ${project_name} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy_directory ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+		ADD_CUSTOM_COMMAND( TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy_directory ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
 													COMMENT "Copying ${PROJECT_SOURCE_DIR}/include to ${PROJECT_BINARY_DIR}" )
 	endif(${project_type} STREQUAL "LIBRARY") 
 	
 	
 	#
-	#Exporting dependencies and main targets
+	#Exporting main targets (and binary and source dependencies ? )
 	#
 	
-	export(TARGETS ${project_name} FILE Depends.cmake)
+	export(TARGETS ${PROJECT_NAME} ${${PROJECT_NAME}_source_depends} ${${PROJECT_NAME}_bin_depends} FILE Export.cmake)
 
 endmacro (WkBuild)
 
@@ -199,23 +199,33 @@ endmacro (WkBuild)
 # Different than for a package because this dependency hasnt been installed yet.
 #
 
-macro (WkBuildDepends project_name )
+macro (WkBinDepends  )
+
 
 foreach ( looparg ${ARGN} )
 	
-	SET(${looparg}_DEPEND_PATH ${looparg}_build CACHE PATH "Binary build directory for ${looparg} project." )
+	set(${looparg}_EXPORT_CMAKE CACHE FILEPATH " Export.cmake filepath for ${looparg} dependency " )
 	
-	file(GLOB projecttargets ${${looparg}_DEPEND_PATH}/Depends.cmake)
-	
-	if ( projecttargets )
-		include(${projecttargets})
-		#set (${project_name}_bin_depends "${${project_name}_bin_depends} ${looparg}")
-		target_link_libraries( ${project_name} ${looparg} )
-		add_dependencies ( ${project_name} ${looparg} )
-	else ( projecttargets )
-		message ( SEND_ERROR "${looparg} build not detected ( looking for Depends.cmake ). Please correct ${looparg}_DEPEND_PATH" )
-	endif ( projecttargets )
+	if ( EXISTS ${${looparg}_EXPORT_CMAKE})
+		include(${${looparg}_EXPORT_CMAKE} RESULT_VARIABLE ${looparg}_depends)
+		
+		#TODO : detect if the target has been properly defined by the include
+		
+		#saving project_bin_depends for future export
+		set(${PROJECT_NAME}_bin_depends ${${PROJECT_NAME}_bin_depends} ${looparg})
+		#include if present
+		if (EXISTS ${${looparg}_DEPEND_PATH}/include)
+			include_directories( ${${looparg}_DEPEND_PATH}/include )
+		endif (EXISTS ${${looparg}_DEPEND_PATH}/include)	
+		target_link_libraries( ${PROJECT_NAME} ${looparg} )
+		#reminder : imported targets wont be built by curent project, so no need to specify dependencies building priorities.
+	else ( EXISTS ${${looparg}_EXPORT_CMAKE} )
+		message ( FATAL_ERROR "${looparg} build not detected ( looking for Export.cmake ). Please correct ${looparg}_EXPORT_CMAKE" )
+	endif ( EXISTS ${${looparg}_EXPORT_CMAKE} )
 
+	GET_TARGET_PROPERTY(${looparg}_LOCATION ${looparg} IMPORTED_LOCATION_RELEASE)
+	message ( SEND_ERROR "${${looparg}_LOCATION}" )
+	
 endforeach ( looparg ${ARGN} )
 
-endmacro  (WkBuildDepends project_name )
+endmacro (WkBinDepends )
