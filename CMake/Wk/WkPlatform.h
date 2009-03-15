@@ -27,4 +27,4 @@
 #define NULL 0
 #endif
 
-#endif // WKPLATFORM_HH
+#endif /* WKPLATFORM_HH */
