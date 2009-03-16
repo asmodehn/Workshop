@@ -1,7 +1,7 @@
 #ifndef PROJECTC_H
 #define PROJECTC_H
 
-#include "WkPlatform.hh"
+#include "WkPlatform.h"
 
 /* Set up for C function definitions, even when using C++ */
 #ifdef __cplusplus

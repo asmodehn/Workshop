@@ -1,16 +1,12 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6 FATAL_ERROR)
 
-INCLUDE ( CMake/WkCompilerSetup.cmake )
-INCLUDE ( CMake/WkSubversion.cmake )
 INCLUDE ( CMake/WkBuild.cmake )
 INCLUDE ( CMake/WkTest.cmake )
 
-PROJECT( ProjectC C )
+WkProject( ProjectC C )
 
-WkCompilerSetup( ProjectC )
-WkSvn ( ProjectC )
+WkBuild( LIBRARY SHARED )
 
-WkBuild( ProjectC LIBRARY SHARED )
-
-WkTestAllOnce( ProjectC )
+WkTestBuild( maintestC )
+WkTestRun( maintestC )
 

@@ -219,7 +219,7 @@ foreach ( looparg ${ARGN} )
 		set(${looparg}_BIN_LOCATION ${${looparg}_LOCATION} CACHE FILEPATH "Location of the binary dependency - .lib or .dll" )
 
 		if ( NOT EXISTS ${${looparg}_BIN_LOCATION} )
-			message (FATAL_ERROR "Binary dependency NOT FOUND. Please correct ${looparg}_LOCATION")
+			message (FATAL_ERROR "Binary dependency ${${looparg}_LOCATION} NOT FOUND. Please correct ${looparg}_LOCATION")
 		endif ( NOT EXISTS ${${looparg}_BIN_LOCATION} )
 		
 		#include if present
