@@ -1,4 +1,4 @@
-#include "header.h"
+#include "projectB.h"
 
 #include <stdio.h>
 

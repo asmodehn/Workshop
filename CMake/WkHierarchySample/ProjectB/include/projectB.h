@@ -16,4 +16,4 @@ int B_display(const char* txt);
 }
 #endif
 
-#endif // PROJECTB
+#endif /* PROJECTB */
