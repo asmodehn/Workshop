@@ -14,14 +14,6 @@ MACRO(WkTestBuild )
 
 	option(${PROJECT_NAME}_ENABLE_TESTS "Wether or not you want the project to include the tests and enable automatic testing for ${PROJECT_NAME}" OFF)
 
-	
-					foreach ( looparg ${${PROJECT_NAME}_bin_depends} )
-					#reincluding export file to get dependencies...
-					include(${${looparg}_EXPORT_CMAKE}) 
-					GET_TARGET_PROPERTY(${looparg}_LOCATION ${looparg} IMPORTED_LOCATION_RELEASE)
-					message ( SEND_ERROR "${${looparg}_LOCATION}" )
-					endforeach ( looparg ${${PROJECT_NAME}_bin_depends} )
-	
 	IF(${PROJECT_NAME}_ENABLE_TESTS)
 		ENABLE_TESTING()
 		
@@ -35,12 +27,6 @@ MACRO(WkTestBuild )
 				IF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test )
 					FILE ( MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/test )
 				ENDIF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test )
-			
-				#Really needed ??
-				# TODO : investigate
-				IF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test/${CMAKE_BUILD_TYPE} )
-					FILE ( MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/test/${CMAKE_BUILD_TYPE} )
-				ENDIF ( NOT EXISTS ${PROJECT_BINARY_DIR}/test/${CMAKE_BUILD_TYPE} )
 			
 				#Set where test executables should be found
 				SET(${PROJECT_NAME}_TESTS_OUTPUT_PATH ${PROJECT_BINARY_DIR}/test CACHE PATH "Ouput directory for ${Project} tests.")
@@ -63,9 +49,7 @@ MACRO(WkTestBuild )
 														COMMENT "Copying ${${PROJECT_NAME}_LOCATION} to ${${test_name}_PATH}" )
 				#needed for each imported binary dependency as well
 				foreach ( looparg ${${PROJECT_NAME}_bin_depends} )
-					GET_TARGET_PROPERTY(${looparg}_LOCATION ${looparg} IMPORTED_LOCATION_RELEASE)
-					message ( SEND_ERROR "${${looparg}_LOCATION}" )
-					ADD_CUSTOM_COMMAND( TARGET ${test_name} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${${looparg}_LOCATION} ${${test_name}_PATH}
+					ADD_CUSTOM_COMMAND( TARGET ${test_name} POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${${looparg}_BIN_LOCATION} ${${test_name}_PATH}
 														COMMENT "Copying ${${PROJECT_NAME}_LOCATION} to ${${test_name}_PATH}" )
 				
 				endforeach ( looparg ${${PROJECT_NAME}_bin_depends} )

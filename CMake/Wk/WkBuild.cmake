@@ -198,22 +198,32 @@ endmacro (WkBuild)
 # Different than for dependencies in the same WKHierarchy (automatically detected in ext/* and statically built and linked )
 # Different than for a package because this dependency hasnt been installed yet.
 #
+# WkBinDepends( RELEASE | DEBUG  [ bin_depend [...] ] )
 
-macro (WkBinDepends  )
-
+macro (WkBinDepends build_type )
 
 foreach ( looparg ${ARGN} )
 	
 	set(${looparg}_EXPORT_CMAKE CACHE FILEPATH " Export.cmake filepath for ${looparg} dependency " )
 	
 	if ( EXISTS ${${looparg}_EXPORT_CMAKE})
-		include(${${looparg}_EXPORT_CMAKE} RESULT_VARIABLE ${looparg}_depends)
+		include(${${looparg}_EXPORT_CMAKE})
 		
-		#TODO : detect if the target has been properly defined by the include
-		
-		#saving project_bin_depends for future export
+		#saving project_bin_depends for future use
 		set(${PROJECT_NAME}_bin_depends ${${PROJECT_NAME}_bin_depends} ${looparg})
+		if ( ${build_type} STREQUAL "RELEASE")
+			get_target_property(${looparg}_LOCATION ${looparg} IMPORTED_LOCATION_RELEASE)
+		else ( ${build_type} STREQUAL "RELEASE")			
+			get_target_property(${looparg}_LOCATION ${looparg} IMPORTED_LOCATION_DEBUG)
+		endif ( ${build_type} STREQUAL "RELEASE")			
+		set(${looparg}_BIN_LOCATION ${${looparg}_LOCATION} CACHE FILEPATH "Location of the binary dependency - .lib or .dll" )
+
+		if ( NOT EXISTS ${${looparg}_BIN_LOCATION} )
+			message (FATAL_ERROR "Binary dependency NOT FOUND. Please correct ${looparg}_LOCATION")
+		endif ( NOT EXISTS ${${looparg}_BIN_LOCATION} )
+		
 		#include if present
+		get_filename_component(${looparg}_DEPEND_PATH ${${looparg}_EXPORT_CMAKE} PATH)
 		if (EXISTS ${${looparg}_DEPEND_PATH}/include)
 			include_directories( ${${looparg}_DEPEND_PATH}/include )
 		endif (EXISTS ${${looparg}_DEPEND_PATH}/include)	
@@ -223,9 +233,7 @@ foreach ( looparg ${ARGN} )
 		message ( FATAL_ERROR "${looparg} build not detected ( looking for Export.cmake ). Please correct ${looparg}_EXPORT_CMAKE" )
 	endif ( EXISTS ${${looparg}_EXPORT_CMAKE} )
 
-	GET_TARGET_PROPERTY(${looparg}_LOCATION ${looparg} IMPORTED_LOCATION_RELEASE)
-	message ( SEND_ERROR "${${looparg}_LOCATION}" )
 	
 endforeach ( looparg ${ARGN} )
 
-endmacro (WkBinDepends )
+endmacro (WkBinDepends build_type )
