@@ -27,22 +27,15 @@
 # THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
-PROJECT( ProjectA C CXX )
-
-INCLUDE ( CMake/WkCMake/WkCompilerSetup.cmake )
 INCLUDE ( CMake/WkCMake/WkBuild.cmake )
 INCLUDE ( CMake/WkCMake/WkTest.cmake )
 
-WkCompilerSetup( ProjectA )
+WkProject( ProjectA C CXX )
 
-# Building shared library only for main target. dependencies are forced to static in WkBuild.
-# Otherwise they would be separate package.
-SET(BUILD_SHARED_LIBS ON)
+WkBuild( LIBRARY SHARED)
 
-WkBuild( ProjectA LIBRARY ProjectB )
-
-WkTestBuild( maintest ProjectA)
-WkTestRun( maintest ProjectA)
+WkTestBuild( maintestA)
+WkTestRun( maintestA)
 
