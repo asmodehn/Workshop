@@ -34,7 +34,7 @@ INCLUDE ( CMake/WkTest.cmake )
 
 WkProject( ProjectB C )
 
-WkBuild( LIBRARY STATIC )
+WkBuild( LIBRARY )
 WkBinDepends( RELEASE ProjectC )
 
 WkTestBuild( maintestB )
