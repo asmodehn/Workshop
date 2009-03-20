@@ -7,4 +7,7 @@ Wk CMake currently supports :
  - Few simple executable tests ( in test/ subdirectory ) that dont require additional dependencies
  - target can be executable, library shared or static (module not tested yet, need a MAC)
  - source dependency ( in ext/ subdirectory )
- - binary dependency ( in another Wk build directory )
+ - binary dependency (in another Wk build directory )
+
+Released under BSD License. Please check the LICENSE.txt file.
+
