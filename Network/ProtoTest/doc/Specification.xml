@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article
+  PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<article lang="">
+   <para>Network Protocol Testing Framework Specifications</para>
+   <para/><sect1><title>TODO List</title>
+   <para>Find a more appropriate title and project name</para>
+   <para/></sect1><sect1><title>Goals</title>
+   <para>We have multiple goals on this project:</para>
+   <orderedlist>
+      <listitem>
+         <para>Tests the existing transport protocols, both in features and performance evaluation</para>
+      </listitem>
+      <listitem>
+         <para>Develop a higher level library that make the use of differents protocol easier by following the same concepts for all protocols with a few options changing</para>
+      </listitem>
+      <listitem>
+         <para>Port this library to multiple OS ( orginally developped on Ubuntu 9.04 )</para>
+      </listitem>
+   </orderedlist></sect1><sect1><title>Layer 1 : Connection</title>
+   <para>First we need to compare the systems calls required depending on protocols and features desired.</para>
+   <para>C is for Client usage, S is for Server usage. If both, then both can do the call. If nothing then this call cannot be used for that protocol.</para>
+   <para/>
+   <informaltable frame="all">
+      <tgroup cols="5.2"><tbody><row>
+            <entry>
+               <para/>
+            </entry>
+            <entry namest="c2" nameend="c3">
+               <para>UDP</para>
+            </entry>
+            <entry>
+               <para>DCCP</para>
+            </entry>
+            <entry>
+               <para>SCTP</para>
+            </entry>
+            <entry>
+               <para>TCP</para>
+            </entry>
+         </row>
+         <row>
+            <entry>
+               <para>getaddrinfo()</para>
+            </entry>
+            <entry namest="c2" nameend="c3">
+               <para>CS</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>CS</para>
+            </entry>
+         </row>
+         <row>
+            <entry>
+               <para>socket()</para>
+            </entry>
+            <entry namest="c2" nameend="c3">
+               <para>CS</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>CS</para>
+            </entry>
+         </row>
+         <row>
+            <entry>
+               <para>bind()</para>
+            </entry>
+            <entry namest="c2" nameend="c3">
+               <para>CS</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>CS</para>
+            </entry>
+         </row>
+         <row>
+            <entry>
+               <para>connect()</para>
+            </entry>
+            <entry>
+               <para>C</para>
+            </entry>
+            <entry>
+               <para/>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>C</para>
+            </entry>
+         </row>
+         <row>
+            <entry>
+               <para>listen()</para>
+            </entry>
+            <entry namest="c2" nameend="c3">
+               <para/>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>S</para>
+            </entry>
+         </row>
+         <row>
+            <entry>
+               <para>accept()</para>
+            </entry>
+            <entry namest="c2" nameend="c3">
+               <para/>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>S</para>
+            </entry>
+         </row>
+         <row>
+            <entry>
+               <para>send()</para>
+            </entry>
+            <entry>
+               <para>C</para>
+            </entry>
+            <entry>
+               <para/>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>CS</para>
+            </entry>
+         </row>
+         <row>
+            <entry>
+               <para>recv()</para>
+            </entry>
+            <entry>
+               <para>C</para>
+            </entry>
+            <entry>
+               <para/>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>CS</para>
+            </entry>
+         </row>
+         <row>
+            <entry>
+               <para>sendto()</para>
+            </entry>
+            <entry namest="c2" nameend="c3">
+               <para>CS</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para/>
+            </entry>
+         </row>
+         <row>
+            <entry>
+               <para>recvfrom()</para>
+            </entry>
+            <entry namest="c2" nameend="c3">
+               <para>CS</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para/>
+            </entry>
+         </row>
+         <row>
+            <entry>
+               <para>close()</para>
+            </entry>
+            <entry namest="c2" nameend="c3">
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+         </row>
+         <row>
+            <entry>
+               <para>shutdown()</para>
+            </entry>
+            <entry namest="c2" nameend="c3">
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+         </row>
+         <row>
+            <entry>
+               <para>getpeername()</para>
+            </entry>
+            <entry namest="c2" nameend="c3">
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+         </row>
+         <row>
+            <entry>
+               <para>gethostname()</para>
+            </entry>
+            <entry namest="c2" nameend="c3">
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+            <entry>
+               <para>?</para>
+            </entry>
+         </row></tbody></tgroup>
+   </informaltable>
+   <para/>
+   <para>UDP is a protocol that doesnt really have a “client-server” concept behind it. Instead it s more of a peer to peer concept. However the 3 others protocol all required a connection to be established before starting a communication. Therefore we will develop the library with a “client-server” concept in mind, to satisfy the majority rule.</para>
+   <para>NB : UDP will have some specific feature, such as probing for possible connection, because of it s simplicity, and therefore will have a more specific usage.</para>
+   <para/>
+   <para>Form the previous table ( and the specification of these calls), we can see that, while struct addrinfo contains all that we need to establish a connection, the socket seems to be the main object we are working with when that connection is established. However, depending on the protocol we have a symetrical role ( peer to peer ),  or an asymetrical one of client and server.</para>
+   <para>So here is the proposed object structure for this layer:</para>
+   <para>class AddressInfo{}; //wrapper around the struct addrinfo, with simple and documented accessors.</para>
+   <para>class Socket{}; //wrapper around the set of system calls needed to establish a connection.</para>
+   <para>Socket can be in two states : connected or not. However a socket can als have 4 different types of behavior and 4 different implementations, one for each protocol. State pattern will be used for clarity to separates these different uses of a specific protocol. For example, we might have similar behavior for DCCP and UDP since they are both datagram based. However DCCP still expressively request a connection algorithm just like TCP.</para>
+   <para>An unconnected sockets can only send and receive datagrams, unreliably, and can use only UDP. A connected Socket, depending on the connection options, will use DCCP, SCTP or TCP.</para>
+   <para>Callbacks will be registered in the socket so that when a connection is detected, or a message is received, the client program will be notified, and can process the message appropriately.</para>
+   <para>The SigC++ library will be used for Callback system, as it is more flexible in a OO environment than function pointers.</para>
+   <para>We will need to be careful about threads. Aathough very useful, it might be hard to make the code very stable, and the thread issues should be passed back to the client program. We will use internally posix threads, waiting for portable thread interface ( TR1 ? SDL ? OpenThreads ? )</para>
+   <para>The simplest way for that might be to use asynchronus, non-blocking sockets. It can also be an option given to the client.</para></sect1><sect1><title>Layer 2 : Communication</title>
+   <para>Once the Connection established, we can now start to communicate, using the same objects instances that have been created.</para>
+   <para>Note that UDP and DCCP communication will enforce the size of the packet sent.</para>
+   <para/>
+   <para>TODO</para></sect1></article>

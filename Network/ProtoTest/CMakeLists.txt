@@ -4,8 +4,11 @@ WkCMakeDir ( CMake )
 
 WkProject ( ProtoTest C)
 
-WkBuild ( EXECUTABLE )
+WkBuild ( LIBRARY STATIC )
 
 WkLink()
+
+WkTestBuild( client client.c)
+WkTestBuild( server server.c)
 
 

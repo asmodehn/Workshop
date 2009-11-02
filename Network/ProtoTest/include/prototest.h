@@ -21,7 +21,7 @@ void sigchld_handler(int s)
     while (waitpid(-1, NULL, WNOHANG) > 0);
 }
 
-/* get sockaddr, IPv4 or IPv6: */
+/** get sockaddr, IPv4 or IPv6: */
 void *get_in_addr(struct sockaddr *sa)
 {
     if (sa->sa_family == AF_INET)
@@ -32,9 +32,10 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-/*Encapsulate the call to getaddrinfo
-returns a linked list to addrinfos containing the machine NIC information in servinfo.
-*/
+/**
+ *Encapsulate the call to getaddrinfo
+ *returns a linked list to addrinfos containing the machine NIC information in servinfo.
+ */
 int setup_addrinfo( struct addrinfo ** servinfo, const char * node, const char * service, int ai_flags, int ai_family, int ai_socktype)
 {
     struct addrinfo hints;
@@ -51,7 +52,7 @@ int setup_addrinfo( struct addrinfo ** servinfo, const char * node, const char *
     if ((rv = getaddrinfo(node, service, &hints, servinfo)) != 0)
     {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-        return 0; //returning null pointer as a error code
+        return 0; /* returning null pointer as a error code */
     }
 
 #ifdef _DEBUG
@@ -87,7 +88,10 @@ int setup_addrinfo( struct addrinfo ** servinfo, const char * node, const char *
 
 }
 
-int create_socket(int ai_family, int ai_socktype, int ai_protocol)
+/**
+ *
+ */
+int create_socket(int ai_family, int ai_socktype, int ai_protocol, int reusable)
 {
     int sockfd;//listening socket
     int yes=1;
@@ -99,20 +103,24 @@ int create_socket(int ai_family, int ai_socktype, int ai_protocol)
         perror("server: socket");
     }
 
-    // lose the pesky "Address already in use" error message
-    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
-                   sizeof(int)) == -1)
+    if ( reusable )
     {
-        perror("setsockopt");
+        // lose the pesky "Address already in use" error message
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
+                       sizeof(int)) == -1)
+        {
+            perror("setsockopt");
+        }
     }
+
     return sockfd ;
 }
 
-/*
-bind and listen on the socket previously setup.
-beware : p should remain valid until the close happens
-*/
-int socket_listen(int sockfd, struct sockaddr* ai_addr, int ai_addrlen, int backlog)
+/**
+ *bind and listen on the socket previously setup.
+ *beware : p should remain valid until the close happens
+ */
+int socket_listen(int sockfd, struct sockaddr* ai_addr, int ai_addrlen, int ai_socktype, int backlog)
 {
     struct sigaction sa;
 
@@ -120,12 +128,17 @@ int socket_listen(int sockfd, struct sockaddr* ai_addr, int ai_addrlen, int back
     {
         close(sockfd);
         perror("server: bind");
+        return -1;
     }
 
-    if (listen(sockfd, backlog) == -1)
+    //listen only if tcp, udp doesnt support this
+    if ( ai_socktype == SOCK_STREAM)
     {
-        perror("listen");
-        exit(1);
+        if (listen(sockfd, backlog) == -1)
+        {
+            perror("listen");
+            return -1;
+        }
     }
 
     sa.sa_handler = sigchld_handler; // reap all dead processes
@@ -142,13 +155,30 @@ int socket_listen(int sockfd, struct sockaddr* ai_addr, int ai_addrlen, int back
     return 0;
 }
 
-
-int socket_connect()
+/**
+ *
+ */
+int socket_connect(int sockfd, struct sockaddr* ai_addr, int ai_addrlen, int (*clientonconnect_cb)( int new_fd, struct sockaddr * server_addr, socklen_t sockaddr_size ))
 {
-    return -1;
+
+    if (connect(sockfd, ai_addr, ai_addrlen) == -1)
+    {
+        close(sockfd);
+        perror("client: connect");
+        return -1;
+    }
+    clientonconnect_cb( sockfd, (struct sockaddr *) ai_addr, ai_addrlen);
+
+
+
+    return 0;
+
 }
 
 
+/**
+ *
+ */
 int   socket_accept( int sockfd, int (*onconnect_cb)( int new_fd, struct sockaddr * client_addr, socklen_t sockaddr_size ) )
 {
     //TODO : handle a table here because we pass a pointer to child process
@@ -185,23 +215,6 @@ int   socket_accept( int sockfd, int (*onconnect_cb)( int new_fd, struct sockadd
 
 }
 
-
-int socket_on_connect_cb( int new_fd, struct sockaddr * client_addr, socklen_t sockaddr_size )
-{
-    char s[INET6_ADDRSTRLEN];
-
-    inet_ntop(client_addr->sa_family,
-              get_in_addr(client_addr),
-              s, sizeof s);
-    printf("server: child process for connection from %s\n", s);
-
-    if (send(new_fd, "Hello, world!", 13, 0) == -1)
-        perror("send");
-
-    close(new_fd);
-
-    return 0;
-}
 
 
 
