@@ -1,0 +1,36 @@
+Introduction : NetGate
+======================
+
+This is a first prototype for a distribution protocol and algorithm,
+that aims at making distribution, concurrent processes, connections, etc.
+transparent and more intuitive.
+It will implement at first an improved version of vector clock, as well as a test program.
+
+Test application
+================
+A first application can be written, just as a chat with lines organized differently depending if the  concurrency has been detected or not. Example :
+
+
+process A    |   process B
+msg1         |   
+             |    msg2
+means that msg happens after processB had knowledge of process A's msg1
+
+process A    |   process B
+             |    msg1
+msg2         |    
+means that msg2 happens after processA had knowledge of process B's msg1
+
+process A    |   process B
+msg1         |   msg2
+             |
+means that msg1 and msg2 happened simultaneously,neither processA or processB had knowldge of each other msg or msg2 before sending heir own.
+
+Implementation roadmap
+======================
+
+-First version : simple vector clock 2 processes. preconnected
+
+-Second version : dynamic vector clock inspired by interval tree clocks, up to 8 participants, who can be dynamically connected
+
+-Third version : let s see
