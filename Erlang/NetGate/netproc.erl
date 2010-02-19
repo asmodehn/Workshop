@@ -2,9 +2,9 @@
 -export([start/0,start_noserver/1,init/2]).
 %%
 %%
-%% This module is a local chat window, that will, if started normally,
+%% This module is a local chat window, that can, if started normally,
 %% spawn a netproc_srv.
-%% It will communicate to this local server via its ePID
+%% It will communicate to the local netproc_srv via its ePID
 %% The server is supposed to manage sending messages to other servers using
 %% NetGate peer-to-peer protocol.
 %%
@@ -14,28 +14,12 @@
 
 start() ->
     io:format("Starting local server ...",[]),
-    SrvPid = spawn(netproc_srv,init,[self()]),
-    io:format("PID : ~w~n",[SrvPid]),
+    SrvPid = stickydebug:spawn_debug(netproc_srv,init,[self()]),
     start_noserver(SrvPid).
 
 start_noserver(SrvPid) ->
     io:format("Starting local client ...",[]),
-    GUIPid = spawn(netproc,init,[self(),SrvPid]),
-    io:format("PID : ~w~n",[GUIPid]),
-    waitfinish().
-
-waitfinish() ->
-    process_flag(trap_exit,true),
-	receive
-	%waiting for a message to be displayed on exit
-	{'EXIT',FromPid,Reason} ->
-		io:format("Exit Signal from ~w because ~w~n",[FromPid,Reason]);
-	% waiting for a normal message to be displayed on exit.
-	{exit_display,message} -> 
-		message;
-	X ->
-	    io:format("Got X=~w~n",[X])
-    end.
+    stickydebug:spawn_debug(netproc,init,[self(),SrvPid]).
 
 init(Pid,SrvPid) ->
     gui_create(Pid,SrvPid).
@@ -61,7 +45,8 @@ gui_write(Text) ->
 	    gs:config(chat,{vscrollpos,Insrow - gs:read(chat,char_height)}).
 
 server_connect(Pid) ->
- 	%gui_write("Initiating Local Connection..."),	
+	io:fwrite("Initiating Local Connection to ~w~n",[Pid]),
+ 	%gui_write("Initiating Local Connection to ~w~n",[Pid]),	
 	Pid ! {connect,self()},
 	receive
 	{connect,SrvPid} -> SrvPid
