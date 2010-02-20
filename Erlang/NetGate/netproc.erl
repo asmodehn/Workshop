@@ -1,6 +1,7 @@
 -module(netproc).
--export([start/0,start_noserver/1,init/2]).
-%%
+-export([start/0,start_noserver/1,gui_init/2]).
+-export([conx_init/2]).
+
 %%
 %% This module is a local chat window, that can, if started normally,
 %% spawn a netproc_srv.
@@ -12,50 +13,49 @@
 %% through sockets, in a more traditional client - server manner.
 %%
 
+
+%%
+%% Design : 
+%%
+%% start() 
+%%
+%%
 start() ->
-    io:format("Starting local server ...",[]),
+    io:format("Starting local server ...~n",[]),
     SrvPid = stickydebug:spawn_debug(netproc_srv,init,[self()]),
     start_noserver(SrvPid).
 
 start_noserver(SrvPid) ->
-    io:format("Starting local client ...",[]),
-    stickydebug:spawn_debug(netproc,init,[self(),SrvPid]).
+    io:format("Starting local client ...~n",[]),
+    stickydebug:spawn_debug(netproc,gui_init,[self(),SrvPid]).
 
-init(Pid,SrvPid) ->
-    gui_create(Pid,SrvPid).
-
-gui_create(Pid,SrvPid) ->
-    %the connection might generate a new process to be created
-    Newsrvpid = server_connect(SrvPid),
-    %TODO : separate client connection and GUI
-    %but this require one more process...
-
+%gui management process
+gui_init(Pid,SrvPid) ->
     %creating the GUI
     S=gs:start(),
     Win=gs:window(S,[{title,"NetProc Tests"},{width,300},{height,600}]),
+    gs:create(label,status_label,Win,[	{label,{text,"Status :"}},
+					{height,40},{width,280},
+					{x,10}, {y,10}	]),
     gs:create(editor,chat,Win,[{height,500}, {width,280}, {x,10}, {y,60}]),
     gs:create(entry,entry,Win,[{x,10},{y,560},{width,280},{keypress,true}]),
-    gs:config(chat,{vscroll,right}),
+    gs:config(chat,[{vscroll,right}]),
     gs:config(Win,{map,true}),
-    loop(Pid,Newsrvpid).
+
+    %spawning connexion management process
+    Newsrvpid = stickydebug:spawn_debug(netproc,conx_init,[self(),SrvPid]),
+
+    gui_loop(Pid,Newsrvpid).
 
 gui_write(Text) ->
 	    Insrow=gs:read(chat,size),
-	    gs:config(chat,{insert,{{Insrow,0},Text}}),
-	    gs:config(chat,{vscrollpos,Insrow - gs:read(chat,char_height)}).
+	    gs:config(chat,[{insert,{{Insrow,0},Text}}]),
+	    gs:config(chat,[{vscrollpos,Insrow - gs:read(chat,char_height)}]).
 
-server_connect(Pid) ->
-	io:fwrite("Initiating Local Connection to ~w~n",[Pid]),
- 	%gui_write("Initiating Local Connection to ~w~n",[Pid]),	
-	Pid ! {connect,self()},
-	receive
-	{connect,SrvPid} -> SrvPid
-		%gui_write("Server Found, PID :" ++ srvpid )
-	end,
-	SrvPid.
+gui_labelchange(Text) ->
+	gs:config(status_label,[{label,{text,Text}}]).
 
-
-loop(Pid,SrvPid) ->
+gui_loop(Pid,SrvPid) ->
     %waiting on events
     receive
 	{gs,entry,keypress,_,['Return'|_]} ->
@@ -66,15 +66,41 @@ loop(Pid,SrvPid) ->
 	    gui_write(Text),
 	    %clearing the entry field
 	    gs:config(entry,{delete,{0,length(Text)}}),
-	    loop(Pid,SrvPid);
+	    gui_loop(Pid,SrvPid);
 	{gs,entry,keypress,_,_} ->
-	    loop(Pid,SrvPid);
+	    gui_loop(Pid,SrvPid);
 	{gs,_,destroy,_,_} ->
 	    Pid ! {exit_display,"window_closed"},
 	    exit(normal);
+	{conx,statusmsg,Msg} ->
+	    gui_labelchange("Status : " ++ Msg),
+	    gui_loop(Pid,SrvPid);
 	X ->
 	    io:format("Got X=~w~n",[X]),
-	    loop(Pid,SrvPid)
+	    gui_loop(Pid,SrvPid)
     end.
+
+%server connexion management process
+conx_init(GUIPid,SrvPid) when is_pid(GUIPid) and is_pid(SrvPid) ->
+ 	
+	GUIPid ! {conx,statusmsg,"Initiating Local Connection to " ++ pid_to_list(SrvPid) },
+	SrvPid ! {connect,self()},
+	receive
+	{connect,NewSrvPid} -> 
+		GUIPid ! {conx,statusmsg,"Server Found, PID :" ++ pid_to_list(NewSrvPid)}
+	end,
+	conx_watch(GUIPid,SrvPid).
+
+conx_watch(GUIPid,SrvPid) ->
+	receive
+		%message from the gui
+		{netproc,Text} -> 
+		SrvPid ! {netproc,Text},
+		conx_watch(GUIPid,SrvPid);
+		%message from the server
+		{conx,statusmsg,X} -> 
+		GUIPid ! {conx,statusmsg,X},
+		conx_watch(GUIPid,SrvPid)
+	end.
 
 
