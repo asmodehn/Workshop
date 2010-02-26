@@ -15,6 +15,8 @@ spawn_debug(Module,Func,ArgList) ->
 	end,
 	TransPid.
 
+%TODO : spy messages between processes
+
 %useful for debugging
 spawn_wait(PPid,Module,Func,ArgList) ->
 	Pid = spawn_link(Module,Func,ArgList),
