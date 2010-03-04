@@ -1,0 +1,30 @@
+StickyNet is a prototype in erlang of a different kind of network.
+
+StickyNet is designed to be extremely safe virtual network. Connections are maintained, no matter what ( almost... )
+
+In StickyNet:
+[ sn_probe ]
+- A node declares itself by broadcasting his node name. his name should be unique in his environment at least, otherwise it is made unique ( add number... whatever... )
+- A node as an indice of trust 0 < T < 1, which is basically the time it has been running / the time it has been online.
+[ sn_group ]
+- A node can join or leave a "group". A node can belong to multiple groups at once.
+[ sn_route ]
+- A message can be addressed to a node from a node or a group, or to a group from a node or a group. group can be seen as "virtual" nodes... multiple nodes looking like one from afar...
+- each node maintain a list of its neighbour and use them to route messages. a coefficient can ba added depending on the estimated time for the message to reach the node...
+- the shortest path is computed, and the message sent into this path, node by node.
+[ sn_transfer ]
+- Everytime a message is sent ( to a node or a group ) it is send multiple times to the target, as well as a certain number of targets, in the main target neighbourhood, to garantee delivery. the number of target is computed and depend mainly on the Trust indice of the nodes involved in the transmission.
+- transmission is asynchrounous, but garanteed by the target's closest neighbours. Therefore acknowledgement might reach the origin of the transmission very late, as it is a low priority message by default. Since the whole point of sticky net is to insure reliability of the transfer, it is assumed the calling application will rely on stickynet system. In really important cases, an ack will be received, but the time of delivery of the ack is not garanteed.
+
+
+The overall goal is to obtain a network that is :
+- peer-to-group oriented, 
+- with reliable transmission (without full acknowledgement)
+- unordered delivery
+- asynchronous
+- fast delivery
+- adaptative to network topology "on the fly" changes
+- persistent over changes.
+
+The network stick to the network, as long as it is on, no matter what happen in the computer environment, or on other nodes, there is always a different solution to transmit a message.
+

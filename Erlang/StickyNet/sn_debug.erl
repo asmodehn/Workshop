@@ -1,5 +1,5 @@
--module(stickydebug).
--include("stickydebug.hrl").
+-module(sn_debug).
+-include("sn_debug.hrl").
 -export([spawn_debug/3]).
 %if possible we should hide this
 -export([spawn_wait/4]).

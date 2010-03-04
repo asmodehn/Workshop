@@ -1,13 +1,15 @@
--module(stickyprobe_LAN).
--export([init/1,fin/1,open/2,close/1,getlocalif/1,receiver/2,caster/2]).
+-module(sn_probe_LAN).
+-export([init/1,fin/1,open/2,close/1,getlocalif/1,receiver/3,caster/2]).
 
 %%including selftest header
--include("stickyprobe.hrl").
+-include("sn_probe.hrl").
 
 %%
-%% This module is a StickyProbe implementation in erlang.
-%% It can detect other StickyNet nodes, and inform it s parent, usually
-%% stickynet.
+%% This module is a StickyNet_Probe implementation in erlang.
+%% It advertise itself upon initialization, and can detect other StickyNet nodes.
+%% When other nodes are detected, it informs its parent process.
+%% It is used to gather nodes statistics in order for the sn_route process to use them
+%% to optimise the routes.
 %% 
 
 %%
@@ -26,11 +28,11 @@ init(Pid) ->
 
 	%% autodetection of other nodes
 	Sock = open(LocalIP,?STICKY_PROBE_PORT),
-	PidR = spawn(?MODULE,receiver,[Sock,Pid]),
+	PidR = spawn(?MODULE,receiver,[Sock,Pid,Broadcast]),
    	ok = gen_udp:controlling_process(Sock,PidR),
 	PidC = spawn(?MODULE,caster,[Sock,Broadcast]),
 	{Sock,PidR,PidC}.
-	%%Calling process must then wait and receive message, just like start() is doing here
+	%%Calling process must then wait and receive message
 
 %% Finalize StickyProbe, and exit.
 fin({S,PidR,PidC}) ->
@@ -92,29 +94,39 @@ open(Addr,Port) ->
 
 close(S) -> gen_udp:close(S).
 
-receiver(Sock,Pid) ->
-	io:fwrite("~w StickyProbe : Listening... ~n",[self()]),
-	receive_loop(Sock,Pid).
+receiver(Sock,Pid,RIp) ->
+	io:fwrite("~w StickyNet_Probe : Listening... ~n",[self()]),
+	receive_loop(Sock,Pid,RIp).
 
-receive_loop(Sock,Pid) ->
+receive_loop(Sock,Pid,RIp) ->
    receive
        {udp, _Socket, IP, InPortNo, Packet} ->
-           io:format("~w~n--From: ~p~n--Port: ~p~n--Data: ~p~n",[self(),IP,InPortNo,Packet]),
-	   Pid ! {stickynode,IP,Packet},
-           receive_loop(Sock,Pid);
+	Data = binary_to_term(Packet),
+           io:format("~w~n--From: ~p~n--Port: ~p~n--Data: ~p~n",[self(),IP,InPortNo,Data]),
+	% if ttl >0 we resend
+	case Data#probe_msg.ttl>0 of
+		true ->
+	ok = gen_udp:send(Sock,RIp,?STICKY_PROBE_PORT,term_to_binary(Data#probe_msg{ttl= Data#probe_msg.ttl - 1}));
+		false -> ok
+	end,
+
+	% we transmit to the main program
+
+	   Pid ! {stickynode,IP,Data},
+           receive_loop(Sock,Pid,RIp);
        stop -> true;
        AnythingElse -> io:format("RECEIVED: ~p~n",[AnythingElse]),
-           receive_loop(Sock,Pid)
+           receive_loop(Sock,Pid,RIp)
    end.
 
 caster(Sock,RIp) ->
 	io:fwrite("~w StickyProbe : Casting... ~n",[self()]),
    	%%{ok,IP} = inet_parse:address(?STICKY_PROBE_IP),
-	ok = gen_udp:send(Sock,RIp,?STICKY_PROBE_PORT,<<"sticky">>),
+	ok = gen_udp:send(Sock,RIp,?STICKY_PROBE_PORT,term_to_binary(#probe_msg{nid="stickynode"})),
 	receive
 		stop -> ok
-	after 1000 ->
-		caster(Sock,RIp)
+	after 5000 ->
+		timeout
 	end.
 
 

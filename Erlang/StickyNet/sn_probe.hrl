@@ -3,15 +3,15 @@
 -include("stickynet.hrl").
 
 %%
-%% This header is an self-test include for the StickyProbe module in erlang.
+%% This header is an self-test include for the StickyNet_Probe module in erlang.
 %%
-%% start() will launch a new StickyProbe, if one doesnt already exists.
+%% start() will launch a new StickyNet_Probe, if one doesnt already exists.
 %% wait() will report wich stickynet nodes have been detected.
 %% stop() will stop all processes started by start(), and terminate the process.
 %%
 
 start() ->
-	Piddisp =stickydebug:spawn_debug(?MODULE,loop_getnodes,[]),
+	Piddisp =sn_debug:spawn_debug(?MODULE,loop_getnodes,[]),
 	{Sock,PidR,PidC} = init(Piddisp),
 	link(PidR),
 	link(PidC),
@@ -23,7 +23,7 @@ wait({Sock,PidR,PidC},Piddisp) ->
 	{'EXIT',FromPid,Reason} ->
 		io:fwrite("Exit signal from ~w, Reason ~w.~n",[FromPid,Reason]),
 		wait({Sock,PidR,PidC},Piddisp)
-	after 10000 ->
+	after 20000 ->
 		io:fwrite("Test Timeout reached. Exiting.~n")
 	end,
 	stop({Sock,PidR,PidC},Piddisp).
