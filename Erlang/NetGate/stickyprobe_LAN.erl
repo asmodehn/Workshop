@@ -85,8 +85,9 @@ parseif([],BcIPList) -> BcIPList.
 
 open(Addr,Port) ->
    %{ok,IP} = inet_parse:address(Addr),
+   %DOESNT SEEM TO WORK WITH IP... why ?
+   %{ok,S} = gen_udp:open(Port,[{reuseaddr,true}, {ip,Addr}, {broadcast,true}, binary]),
    {ok,S} = gen_udp:open(Port,[{reuseaddr,true}, {broadcast,true}, binary]),
-   %%inet:setopts(S,[{add_membership,{Addr,{0,0,0,0}}}]),
    S.
 
 close(S) -> gen_udp:close(S).
