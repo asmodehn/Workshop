@@ -4,7 +4,7 @@
 
 % this modules redefine bitwise operators for bitstream, instead of only on 8 bits by default
 
--export([bs_reverse/1,bs_not/1]).
+-export([bs_reverse/1,bs_not/1,bs_to_string/1]).
 -export([bs_true/1,bs_false/1,bs_random/1]).
 -export([bs_and/2,bs_or/2,bs_xor/2,bs_sl/2,bs_sr/2]).
 -export([bs_show/1,bs_autotest/1,bs_oper_boolalg_test/2,bs_oper_boolsimplif_test/3]).
@@ -28,6 +28,34 @@
 % reverse a bitstring, bit by bit
 bs_reverse(<<I:1,B/bits>> ) -> << ( bs_reverse(B))/bits,I:1 >>;
 bs_reverse(<<>>) -> <<>>.
+
+%generate Bitstring
+%random
+bs_random(Size) when Size > 8 -> << (random:uniform(255)):8 , (bs_random(Size-8))/bits >>;
+bs_random(Size) when Size =< 8 -> << (random:uniform(255)):Size >>.
+%true
+bs_true(Size) when Size > 8 -> << 2#11111111:8,(bs_true(Size-8))/bits >>;
+bs_true(Size) when Size =< 8 -> << 2#11111111:Size >>.
+% false
+bs_false(Size) when Size > 8 -> << 0:8,(bs_false(Size-8))/bits >>;
+bs_false(Size) when Size =< 8 -> << 0:Size >>.
+
+%getting the first true bit, like : <<00000010000>>
+bs_getlast_true(<<B/bits>>) -> bits_oper:bs_reverse(bs_getfirst_true(bits_oper:bs_reverse(<<B/bits>>))).
+bs_getfirst_true(<<I:1/bits,B/bits>>) when I == <<0:1>> -> <<0:1,(bs_getfirst_true(<<B/bits>>))/bits>>;
+bs_getfirst_true(<<I:1/bits,B/bits>>) when I == <<1:1>> -> <<1:1,0:(bit_size(<<B/bits>>))>>.
+%same with false
+bs_getlast_false(<<B/bits>>) -> bs_getlast_true(bits_oper:bs_not(<<B/bits>>)).
+bs_getfirst_false(<<B/bits>>) -> bs_getfirst_true(bits_oper:bs_not(<<B/bits>>)).
+
+%getting index of the first true bit, like : <<....1<-index->.>> index is [1..bitsize]
+bs_getlast_true_index(<<B/bits>>) -> bit_size(<<B/bits>>)+1 - bs_getfirst_true_index(bits_oper:bs_reverse(<<B/bits>>)).
+bs_getfirst_true_index(<<I:1/bits,B/bits>>) when I == <<0:1>> -> bs_getfirst_true_index(<<B/bits>>);
+bs_getfirst_true_index(<<I:1/bits,B/bits>>) when I == <<1:1>> -> bit_size(<<B/bits>>)+1.
+%same with false
+bs_getlast_false_index(<<B/bits>>) -> bs_getlast_true_index(bits_oper:bs_not(<<B/bits>>)).
+bs_getfirst_false_index(<<B/bits>>) -> bs_getfirst_true_index(bits_oper:bs_not(<<B/bits>>)).
+
 
 %TODO :improve performance and code design... same with bitwise comprehension if possible ? or more arithmetic ?
 % unary bitwise not
@@ -93,13 +121,6 @@ bs_autotest(Nb) ->
 	ok = bs_oper_boolsimplif_test(bs_random(128),bs_random(128),bs_random(128)),
 	ok = bs_autotest(Nb-1).
 
-%generate random Bitstring
-bs_random(Size) when Size > 8 -> << (random:uniform(255)):8 , (bs_random(Size-8))/bits >>;
-bs_random(Size) when Size =< 8 -> << (random:uniform(255)):Size >>.
-bs_true(Size) when Size > 8 -> << 2#11111111:8,(bs_true(Size-8))/bits >>;
-bs_true(Size) when Size =< 8 -> << 2#11111111:Size >>.
-bs_false(Size) when Size > 8 -> << 0:8,(bs_false(Size-8))/bits >>;
-bs_false(Size) when Size =< 8 -> << 0:Size >>.
 
 
 bs_oper_boolalg_test(Num,Bin) ->
@@ -132,6 +153,18 @@ bs_oper_boolalg_test(Num,Bin) ->
 	XorOp = random:uniform(255),
 	io:fwrite("| ~8s ~8.2B ||  ~8.2B  ||  ~8s  |~n",["Xor",XorOp,Num bxor XorOp,bs_to_string( bs_xor(Bin,<<XorOp:8>>))]),
 	true = <<(Num bxor XorOp):8>> == bs_xor(Bin,<<XorOp:8>>),
+	%%First true bit
+	io:fwrite("| ~8s          ||  ~8s  ||  ~8s  |~n",["FTB","???",bs_to_string( bs_getfirst_true(Bin))]),
+	io:fwrite("| ~8s          ||  ~8s  ||  ~8.10B  |~n",["FTB indx","???",bs_getfirst_true_index(Bin)]),
+	%%First false bit
+	io:fwrite("| ~8s          ||  ~8s  ||  ~8s  |~n",["FFB","???",bs_to_string( bs_getfirst_false(Bin))]),
+	io:fwrite("| ~8s          ||  ~8s  ||  ~8.10B  |~n",["FFB indx","???",bs_getfirst_false_index(Bin)]),
+	%%Last true bit
+	io:fwrite("| ~8s          ||  ~8s  ||  ~8s  |~n",["LTB","???",bs_to_string( bs_getlast_true(Bin))]),
+	io:fwrite("| ~8s          ||  ~8s  ||  ~8.10B  |~n",["LTB indx","???",bs_getlast_true_index(Bin)]),
+	%%Last false bit
+	io:fwrite("| ~8s          ||  ~8s  ||  ~8s  |~n",["LFB","???",bs_to_string( bs_getlast_false(Bin))]),
+	io:fwrite("| ~8s          ||  ~8s  ||  ~8.10B  |~n",["LFB indx","???",bs_getlast_false_index(Bin)]),
 
 	ok.
 
