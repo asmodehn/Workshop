@@ -7,6 +7,8 @@
 -export([bs_reverse/1,bs_not/1,bs_to_string/1]).
 -export([bs_true/1,bs_false/1,bs_random/1]).
 -export([bs_and/2,bs_or/2,bs_xor/2,bs_sl/2,bs_sr/2]).
+-export([bs_getfirst_true/1,bs_getfirst_false/1,bs_getlast_true/1,bs_getlast_false/1]).
+-export([bs_getfirst_true_index/1,bs_getfirst_false_index/1,bs_getlast_true_index/1,bs_getlast_false_index/1]).
 -export([bs_show/1,bs_autotest/1,bs_oper_boolalg_test/2,bs_oper_boolsimplif_test/3]).
 
 %%existing bitstring operators : 
