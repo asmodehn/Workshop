@@ -6,7 +6,7 @@
 
 %% Modified BSD License.
 
--module(dvclock).
+-module(avclock).
 
 -author('Alexandre VINCENT <alex@asmodehn.com>').
 
