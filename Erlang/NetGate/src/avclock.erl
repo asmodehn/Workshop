@@ -11,7 +11,7 @@
 -author('Alexandre VINCENT <alex@asmodehn.com>').
 
 -export([start/1,connect/0,autotest/0]).
--export([incr_clock/1,is_after/2,is_before/2]).
+-export([incr_clock/1,is_before/2]).
 
 -record(vclock,{id , clock}).
 
@@ -42,15 +42,6 @@ rec_incr_clock(<<>>,<<>> ) ->
 	<<>>;
 rec_incr_clock(<< H:1, T/bits>>,<<HC:8, TC/bits>> ) ->
 	<< (HC + H):8, (rec_incr_clock(<<T/bits>>,<<TC/bits>>))/bits>>.
-	
-%beware is_after <> ! is_before
-%check if Clock1 knows about event at Clock2
-is_after(Clock1,Clock2) ->
-	rec_is_after(Clock1#vclock.clock,Clock2#vclock.clock).
-
-rec_is_after(<<>>,<<>>) -> true;
-rec_is_after(<<HC1:8,TC1/bits>>,<<HC2:8,TC2/bits>>) ->
-	( HC1 >= HC2 ) and rec_is_after(<<TC1/bits>>,<<TC2/bits>>).
 	
 %beware is_before <> ! is_after
 %check if Clock 2 knows about event at Clock1

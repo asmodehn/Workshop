@@ -25,19 +25,19 @@ test_compile: subdirs
 
 test_do: test_compile
 	${RUN_TEST_CMD} -dir . \
-		-logdir test/log -cover test/ermlia.coverspec \
+		-logdir test/log -cover test/netgate.coverspec \
 		-I$(ROOT)/include \
 		-pa $(ROOT)/ebin $(DEPENDENT_EBIN_OPTIONS)
 
 test_single: test_compile
 	${RUN_TEST_CMD} -suite $(SUITE) \
-		-logdir test/log -cover test/ermlia.coverspec \
+		-logdir test/log -cover test/netgate.coverspec \
 		-I$(ROOT)/include \
 		-pa $(ROOT)/ebin $(DEPENDENT_EBIN_OPTIONS)
 
 docs:
-	erl -noshell -run edoc_run application "'ermlia'" \
-		'"."' '[{def,{vsn, "$(ERMLIA_VSN)"}}]'
+	erl -noshell -run edoc_run application "'netgate'" \
+		'"."' '[{def,{vsn, "$(ERMLIA_REV)"}}]'
 
 dialyze:
 	cd src; make dialyze
