@@ -18,7 +18,7 @@
 
 -author('Alexandre VINCENT <alex@asmodehn.com>').
 
--export([getroot_id/1,give_id/1,give_id/2,takeback_id/2,display_id/1]).
+-export([getroot_id/1,give_id/1,give_id/2,give_id/3,takeback_id/2,takeback_id/3,display_id/1]).
 
 % @type id() = bitstring() .
 
@@ -28,14 +28,21 @@
 getroot_id(NbConx) -> bits_oper:bs_true(NbConx+1).
 
 %chooses a set of token to be given to the requerant
-give_id(ID) -> give_id(ID,1).
-give_id(ID,NbTokens) ->
+%give a new ID of 1 token
+give_id(<<ID/bits>>) -> give_id(ID,bits_oper:bs_false(bit_size(ID))).
+%give a new ID of N token
+give_id(<<ID/bits>>,NbTokens) when is_integer(NbTokens) -> give_id(ID,bits_oper:bs_false(bit_size(ID)),NbTokens);
+%give one more token ot the client ID
+give_id(<<ID/bits>>,<<CID/bits>>) -> give_id(ID,CID,1).
+% give any number of token to the client ID
+give_id(<<ID/bits>>,<<CID/bits>>,NbTokens) when is_integer(NbTokens)->
 	TokenID = get_tokenid(ID,NbTokens),
+	NewCID = bits_oper:bs_or(CID,TokenID),
 	NewID = bits_oper:bs_and(ID,bits_oper:bs_not(TokenID)),
 	%if no token given
 	case TokenID == bits_oper:bs_false(bit_size(ID)) of
-		false -> {ok,NewID,TokenID};
-		true -> {error,NewID,TokenID}%no token given
+		false -> {ok,NewID,NewCID};
+		true -> {error,NewID,NewCID}%no token given
 	end.
 
 %finds token IDi
@@ -52,12 +59,31 @@ get_tokenid(<<MyID/bits>>,Nb) when Nb =< 0 ->
 	bits_oper:bs_false(bit_size(MyID)).
 
 %merging back unused tokens
-takeback_id(ID,BackID) ->
-	case bits_oper:bs_and(ID,BackID) /= bits_oper:bs_false(bit_size(ID)) of
-		true -> %there is an error somewhere : BackID contains token we have as well
-			{error,ID};
-		false -> {ok, bits_oper:bs_or(ID,BackID)}
+%get back all token
+takeback_id(ID,BackID) -> takeback_id(ID,BackID,bits_oper:bs_count_true(BackID)).
+%get back any number of token
+takeback_id(ID,BackID,NbTok) ->
+	TokenID = give_tokenid(BackID,NbTok),
+	NewID = bits_oper:bs_or(ID,TokenID),
+	NewBackID = bits_oper:bs_and(BackID,bits_oper:bs_not(TokenID)),
+	%if no token taken
+	case TokenID == bits_oper:bs_false(bit_size(ID)) of
+		false -> {ok,NewID,NewBackID};
+		true -> {error,NewID,NewBackID}%no token taken
 	end.
+
+give_tokenid(<<BackID/bits>>,Nb) when is_integer(Nb), Nb =< 0 ->
+	bits_oper:bs_false(bit_size(BackID));
+give_tokenid(<<BackID/bits>>,Nb) when is_integer(Nb) ->
+	Tok = bits_oper:bs_getfirst_true(<<BackID/bits>>),
+	case Tok == BackID of
+		false ->
+			bits_oper:bs_or(Tok,give_tokenid(bits_oper:bs_and(<<BackID/bits>>,bits_oper:bs_not(Tok)),Nb -1));
+		true ->
+			BackID
+	end.
+
+
 
 display_id(ID) ->
 	io:fwrite(": ID = ~s~n",[bits_oper:bs_to_string(ID)]).
