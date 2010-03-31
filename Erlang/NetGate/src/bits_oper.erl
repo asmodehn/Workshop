@@ -9,6 +9,7 @@
 -export([bs_and/2,bs_or/2,bs_xor/2,bs_sl/2,bs_sr/2]).
 -export([bs_getfirst_true/1,bs_getfirst_false/1,bs_getlast_true/1,bs_getlast_false/1]).
 -export([bs_getfirst_true_index/1,bs_getfirst_false_index/1,bs_getlast_true_index/1,bs_getlast_false_index/1]).
+-export([bs_count_true/1,bs_count_false/1]).
 -export([bs_show/1,bs_autotest/1,bs_oper_boolalg_test/2,bs_oper_boolsimplif_test/3]).
 
 %%existing bitstring operators : 
@@ -58,6 +59,14 @@ bs_getfirst_true_index(<<I:1/bits,B/bits>>) when I == <<1:1>> -> bit_size(<<B/bi
 bs_getlast_false_index(<<B/bits>>) -> bs_getlast_true_index(bits_oper:bs_not(<<B/bits>>)).
 bs_getfirst_false_index(<<B/bits>>) -> bs_getfirst_true_index(bits_oper:bs_not(<<B/bits>>)).
 
+%TODO Test It : number of true bits, number of false bits
+bs_count_true(<<I:1/bits,B/bits>>) when I == <<0:1>> -> 0 + bs_count_true(<<B/bits>>);
+bs_count_true(<<I:1/bits,B/bits>>) when I == <<1:1>> -> 1 + bs_count_true(<<B/bits>>);
+bs_count_true(<<>>) -> 0.
+
+bs_count_false(<<I:1/bits,B/bits>>) when I == <<0:1>> -> 1 + bs_count_false(<<B/bits>>);
+bs_count_false(<<I:1/bits,B/bits>>) when I == <<1:1>> -> 0 + bs_count_false(<<B/bits>>);
+bs_count_false(<<>>) -> 0.
 
 %TODO :improve performance and code design... same with bitwise comprehension if possible ? or more arithmetic ?
 % unary bitwise not
@@ -167,6 +176,10 @@ bs_oper_boolalg_test(Num,Bin) ->
 	%%Last false bit
 	io:fwrite("| ~8s          ||  ~8s  ||  ~8s  |~n",["LFB","???",bs_to_string( bs_getlast_false(Bin))]),
 	io:fwrite("| ~8s          ||  ~8s  ||  ~8.10B  |~n",["LFB indx","???",bs_getlast_false_index(Bin)]),
+	%%Number of true bits
+	io:fwrite("| ~8s          ||  ~8s  ||  ~8.10B  |~n",["NbTB","???",bs_count_true(Bin)]),
+	%%number of false bits
+	io:fwrite("| ~8s          ||  ~8s  ||  ~8.10B  |~n",["NbFB","???",bs_count_false(Bin)]),
 
 	ok.
 
